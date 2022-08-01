@@ -5,5 +5,8 @@
     "dev": "yarn run frontend",
     "frontend": "yarn --cwd frontend start"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "react-router-dom": "^6.3.0"
+  }
 }

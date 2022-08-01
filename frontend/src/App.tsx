@@ -1,9 +1,16 @@
 import { useEffect, useState } from "react";
-import Album from "./Components/Album";
-import {AlbumProps} from "./Components/Album";
+import { HashRouter, Route, Routes } from "react-router-dom";
+import AlbumPage from "./AlbumPage";
+import MainPage from "./MainPage";
+import {AlbumProps} from "./Models/AlbumProps";
 
 const App = (): JSX.Element => {
   const [photoAlbums, setPhotoAlbums] = useState<AlbumProps[]>([]);
+  const [curAlbum, setCurAlbum] = useState<string>();
+
+  const getAlbumFromName = (name: string): AlbumProps | undefined => {
+    return photoAlbums.find((album) => album.name === name);
+  };
 
   useEffect(() => {
     let defaultPhotoAlbums: AlbumProps[] = [
@@ -16,7 +23,7 @@ const App = (): JSX.Element => {
           "https://picsum.photos/200/300/?random",
           "https://picsum.photos/200/300/?random",
           "https://picsum.photos/200/300/?random",
-          ]
+        ],
       },
       {
         name: "Album 2",
@@ -25,18 +32,23 @@ const App = (): JSX.Element => {
           "https://picsum.photos/200/300/?random",
           "https://picsum.photos/200/300/?random",
           "https://picsum.photos/200/300/?random",
-          ]
+        ],
       },
-    ]
+    ];
     setPhotoAlbums(defaultPhotoAlbums);
-  } , []);
+  }, []);
 
   return (
     <div className="app">
-      <h1 className="app-title">Photo Gallery</h1>
-      {photoAlbums.map((album, i) => (
-        <Album key={i} {...album} />
-      ))}
+      <HashRouter>
+        <Routes>
+          <Route path="/" element={<MainPage photoAlbums={photoAlbums} />} />
+          <Route
+            path="/album/:name"
+            element={<AlbumPage {...photoAlbums[0]} />}
+          />
+        </Routes>
+      </HashRouter>
     </div>
   );
 };
