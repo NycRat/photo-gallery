@@ -1,0 +1,9 @@
+{
+  "name": "photo-gallery",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "yarn run frontend",
+    "frontend": "yarn --cwd frontend start"
+  },
+  "license": "MIT"
+}
