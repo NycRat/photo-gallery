@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import {AlbumProps} from "../Models/AlbumProps";
+import { AlbumProps } from "../Models/AlbumProps";
 import Photo from "./PhotoPreview";
 
 const AlbumPreview = (props: AlbumProps): JSX.Element => {

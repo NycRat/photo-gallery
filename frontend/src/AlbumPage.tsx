@@ -1,17 +1,40 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import Photo from "./Components/PhotoPreview";
-import {AlbumProps} from "./Models/AlbumProps";
 
-const AlbumPage = (props: AlbumProps): JSX.Element => {
-  const [photos, setPhotos] = useState<string[]>(props.photos);
+const AlbumPage = (): JSX.Element => {
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  const { albumName } = useParams();
+
+  useEffect(() => {
+    const fetchPhotos = async (): Promise<void> => {
+      if (!albumName) {
+        setIsLoading(false);
+        return;
+      }
+      // fetch photos using album name
+      setPhotos([]);
+      setIsLoading(false);
+    };
+    fetchPhotos();
+  }, [albumName]);
 
   return (
     <div className="album-page">
-      <h1>{props.name}</h1>
-
-      {props.photos.map((photo, i) => {
-        return <Photo key={i} src={photo} />;
-      })}
+      {isLoading ? (
+        <div>Loading ...</div>
+      ) : photos.length !== 0 ? (
+        <div>
+          <h1>{albumName}</h1>
+          {photos.map((photo, i) => (
+            <Photo key={i} src={photo} />
+          ))}
+        </div>
+      ) : (
+        <div>404 Album Not Found</div>
+      )}
     </div>
   );
 };

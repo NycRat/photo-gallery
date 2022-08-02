@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { HashRouter, Route, Routes } from "react-router-dom";
 import AlbumPage from "./AlbumPage";
 import MainPage from "./MainPage";
-import {AlbumProps} from "./Models/AlbumProps";
+import { AlbumProps } from "./Models/AlbumProps";
 
 const App = (): JSX.Element => {
   const [photoAlbums, setPhotoAlbums] = useState<AlbumProps[]>([]);
@@ -43,10 +43,7 @@ const App = (): JSX.Element => {
       <HashRouter>
         <Routes>
           <Route path="/" element={<MainPage photoAlbums={photoAlbums} />} />
-          <Route
-            path="/album/:name"
-            element={<AlbumPage {...photoAlbums[0]} />}
-          />
+          <Route path="/album/:albumName" element={<AlbumPage />} />
         </Routes>
       </HashRouter>
     </div>

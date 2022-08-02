@@ -1,4 +1,6 @@
-html, body, #root {
+html,
+body,
+#root {
   width: 100vw;
   height: 100vh;
   padding: 0;
@@ -18,7 +20,6 @@ html, body, #root {
   border: 1px solid #ccc;
   border-radius: 10px;
   cursor: pointer;
-
 }
 
 .album:hover {

@@ -1,5 +1,5 @@
 import AlbumPreview from "./Components/AlbumPreview";
-import {AlbumProps} from "./Models/AlbumProps";
+import { AlbumProps } from "./Models/AlbumProps";
 
 const MainPage = (props: { photoAlbums: AlbumProps[] }): JSX.Element => {
   return (
