@@ -3,14 +3,10 @@ import { HashRouter, Route, Routes } from "react-router-dom";
 import AlbumPage from "./AlbumPage";
 import MainPage from "./MainPage";
 import { AlbumProps } from "./Models/AlbumProps";
+import NotFoundPage from "./NotFoundPage";
 
 const App = (): JSX.Element => {
   const [photoAlbums, setPhotoAlbums] = useState<AlbumProps[]>([]);
-  const [curAlbum, setCurAlbum] = useState<string>();
-
-  const getAlbumFromName = (name: string): AlbumProps | undefined => {
-    return photoAlbums.find((album) => album.name === name);
-  };
 
   useEffect(() => {
     let defaultPhotoAlbums: AlbumProps[] = [
@@ -44,6 +40,7 @@ const App = (): JSX.Element => {
         <Routes>
           <Route path="/" element={<MainPage photoAlbums={photoAlbums} />} />
           <Route path="/album/:albumName" element={<AlbumPage />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </HashRouter>
     </div>
