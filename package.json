@@ -2,8 +2,12 @@
   "name": "photo-gallery",
   "version": "1.0.0",
   "scripts": {
-    "dev": "yarn run frontend",
-    "frontend": "yarn --cwd frontend start"
+    "dev": "yarn concurrently \"yarn run frontend\" \"yarn run backend\"",
+    "frontend": "cd frontend; yarn start",
+    "backend": "cd backend; cargo run"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^7.3.0"
+  }
 }
