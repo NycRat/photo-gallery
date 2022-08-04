@@ -1,53 +1,74 @@
-use tokio_stream::StreamExt;
-use mongodb::bson::Document;
+use mongodb::bson::{doc, Document};
 use std::env;
+use tokio_stream::StreamExt;
 extern crate dotenv;
 use dotenv::dotenv;
 
-
 pub struct MongoConnection {
-    pub database: mongodb::Database
+    pub database: mongodb::Database,
 }
 
 impl MongoConnection {
     pub async fn init() -> Self {
-        async fn get_database() -> mongodb::error::Result<mongodb::Database> {
-            dotenv().ok();
-            let uri = match env::var("MONGODB_URI") {
-                Ok(v) => v.to_string(),
-                Err(_) => format!("Error loading env"),
-            };
- 
-            let client_options = mongodb::options::ClientOptions::parse(
-                uri
-            ).await?;
+        dotenv().ok();
+        let uri = env::var("MONGODB_URI").unwrap();
+        let client_options = mongodb::options::ClientOptions::parse(uri).await.unwrap();
+        let client = mongodb::Client::with_options(client_options).unwrap();
 
-            let client = mongodb::Client::with_options(client_options)?;
+        let database = client.database("albumDB");
 
-            let database = client.database("testDB");
-
-            Ok(database)
-        }
-
-        let mut database: Option<mongodb::Database> = None;
-
-        match get_database().await {
-            Ok(db) => {
-                database = Some(db);
-            },
-            Err(err) => {
-                println!("{}", err);
-            },
-        }
-
-        MongoConnection { database: database.unwrap() }
+        MongoConnection { database }
     }
 
-    pub fn get_collection(&self, name: &str) -> mongodb::Collection<Document> {
+    pub fn get_album(&self, name: &str) -> mongodb::Collection<Document> {
         self.database.collection::<Document>(name)
     }
 
-    pub async fn get_items(&self) -> String {
+    pub async fn get_image_data(
+        &self,
+        album_name: &str,
+        image_index: i32,
+    ) -> Result<String, String> {
+        let album = self.get_album(album_name);
+
+        let doc = match album.find_one(doc! {"index": image_index}, None).await {
+            Ok(opt_doc) => {
+                if let Some(doc_real) = opt_doc {
+                    doc_real
+                } else {
+                    return Err("Image does not exist".to_string());
+                }
+            }
+            Err(e) => {
+                println!("{}", e.to_string());
+                return Err("MongoDB Error".to_string());
+            }
+        };
+
+        if let Some(bson_data) = doc.get("image_data") {
+            let data = bson_data.to_string();
+            return Ok(data[11..data.len() - 1].to_string()); // get rid of Binary(0x0, .... )
+        } else {
+            return Err("Image data does not exist".to_string());
+        }
+    }
+
+    pub async fn get_album_list(&self) -> Vec<String> {
+        self.database.list_collection_names(None).await.unwrap()
+    }
+
+    pub async fn get_album_length(&self, album_name: &str) -> String {
+        match self.get_album(album_name).count_documents(None, None).await {
+            Ok(len) => {
+                return len.to_string();
+            }
+            Err(e) => {
+                return e.to_string();
+            }
+        }
+    }
+
+    /* pub async fn get_items(&self) -> String {
         async fn get_items_result(
             collection: &mongodb::Collection<Document>,
         ) -> mongodb::error::Result<Vec<Document>> {
@@ -60,7 +81,7 @@ impl MongoConnection {
             Ok(items)
         }
 
-        let collection = self.get_collection("counts");
+        let collection = self.get_album("albums");
 
         let items_result = get_items_result(&collection).await;
 
@@ -72,17 +93,14 @@ impl MongoConnection {
                     println!("{}", e.to_string());
                     items_str.push_str(e.to_string().as_str());
                 }
-            },
+            }
             Err(e) => {
                 println!("{}", e);
-            },
+            }
         };
 
         items_str.push('}');
 
         items_str
-
-    }
-
-
+    } */
 }
