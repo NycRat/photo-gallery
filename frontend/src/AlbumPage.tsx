@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import Photo from "./Components/PhotoPreview";
+import Image from "./Components/Image";
 
 const AlbumPage = (): JSX.Element => {
   const [photos, setPhotos] = useState<string[]>([]);
@@ -29,7 +29,7 @@ const AlbumPage = (): JSX.Element => {
         <div>
           <h1>{albumName}</h1>
           {photos.map((photo, i) => (
-            <Photo key={i} src={photo} />
+            <Image key={i} src={photo} size={"s"} />
           ))}
         </div>
       ) : (

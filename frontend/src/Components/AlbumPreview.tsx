@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { AlbumProps } from "../Models/AlbumProps";
-import Photo from "./PhotoPreview";
+import Image from "./Image"
 
 const AlbumPreview = (props: AlbumProps): JSX.Element => {
   const navigate = useNavigate();
@@ -14,9 +14,9 @@ const AlbumPreview = (props: AlbumProps): JSX.Element => {
     >
       <h1>{props.name}</h1>
       {props.photos.length !== 0 && (
-        <Photo
-          // random photo from album
-          src={props.photos[Math.floor(Math.random() * props.photos.length)]}
+        <Image
+          src={props.photos[0]}
+          size={"s"}
         />
       )}
     </div>
