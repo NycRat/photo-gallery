@@ -52,13 +52,28 @@ impl MongoConnection {
         }
     }
 
-    pub async fn insert_images(&self, album_name: String, image_data_vec: Vec<Vec<u8>>) {
+    pub async fn insert_images(
+        &self,
+        album_name: String,
+        image_data_vec: Vec<Vec<u8>>,
+        image_size: String,
+    ) {
+        match image_size.as_str() {
+            "s" | "m" | "l" => {}
+            _ => {
+                return;
+            }
+        }
+
         let album = self.get_album(album_name);
 
         use mongodb::bson::spec::BinarySubtype;
         use mongodb::bson::Binary;
 
-        let mut image_index: u32 = album.count_documents(None, None).await.unwrap() as u32;
+        let mut image_index: u32 = album
+            .count_documents(doc! {"size": &image_size}, None)
+            .await
+            .unwrap() as u32;
 
         for image_data in image_data_vec {
             let data = Binary {
@@ -70,7 +85,7 @@ impl MongoConnection {
                 .insert_one(
                     doc! {
                         "index": image_index,
-                        "size": "preview", // preview, medium, full
+                        "size": image_size.as_str(),
                         "image_data": data
                     },
                     None,

@@ -22,7 +22,7 @@ async fn parse(input_args: &Vec<String>) -> Result<(), args::ArgsError> {
     );
     args.option(
         "n",
-        "album_name",
+        "name",
         "The name of album",
         "ALBUM_NAME",
         getopts::Occur::Optional,
@@ -33,6 +33,14 @@ async fn parse(input_args: &Vec<String>) -> Result<(), args::ArgsError> {
         "files",
         "Input image files",
         "FILES",
+        getopts::Occur::Optional,
+        Some("".to_owned()),
+    );
+    args.option(
+        "s",
+        "size",
+        "Size of photo (preview, medium, full)",
+        "SIZE",
         getopts::Occur::Optional,
         Some("".to_owned()),
     );
@@ -47,10 +55,11 @@ async fn parse(input_args: &Vec<String>) -> Result<(), args::ArgsError> {
 
     match action.as_str() {
         "insert_images" => {
-            let album_name = args.value_of::<String>("album_name").unwrap();
-            // let album_name = args.value_of::<String>("album_name").unwrap().as_str();
-            let mut file_data_vec: Vec<Vec<u8>> = Vec::new();
+            let album_name = args.value_of::<String>("name").unwrap();
+            let image_size = args.value_of::<String>("size").unwrap();
             let arg_files = args.value_of::<String>("files").unwrap();
+
+            let mut file_data_vec: Vec<Vec<u8>> = Vec::new();
             let input_files = arg_files.split(" ");
 
             for file in input_files {
@@ -58,10 +67,13 @@ async fn parse(input_args: &Vec<String>) -> Result<(), args::ArgsError> {
             }
 
             let db_connection = MongoConnection::init().await;
-            db_connection.insert_images(album_name, file_data_vec).await;
+            db_connection
+                .insert_images(album_name, file_data_vec, image_size)
+                .await;
         }
         "insert_album" => {
-            let album_dir = args.value_of::<String>("album_name").unwrap();
+            let album_dir = args.value_of::<String>("name").unwrap();
+            let image_size = args.value_of::<String>("size").unwrap();
             let image_files = std::fs::read_dir(&album_dir).unwrap();
             let mut file_data_vec: Vec<Vec<u8>> = Vec::new();
             for image_file in image_files {
@@ -79,10 +91,12 @@ async fn parse(input_args: &Vec<String>) -> Result<(), args::ArgsError> {
                 file_data_vec.push(file_util::get_data_from_file(image_file_path));
             }
             let db_connection = MongoConnection::init().await;
-            db_connection.insert_images(album_dir, file_data_vec).await;
+            db_connection
+                .insert_images(album_dir, file_data_vec, image_size)
+                .await;
         }
         "create_album" => {
-            let album_name = args.value_of::<String>("album_name").unwrap();
+            let album_name = args.value_of::<String>("name").unwrap();
             let db_connection = MongoConnection::init().await;
             db_connection.create_album(album_name).await;
         }
