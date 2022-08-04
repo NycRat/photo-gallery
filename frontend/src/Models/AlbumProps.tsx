@@ -1,5 +1,5 @@
 export interface AlbumProps {
   name: string;
-  photos: string[];
+  images: string[];
 }
 

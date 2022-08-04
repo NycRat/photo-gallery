@@ -13,9 +13,9 @@ const AlbumPreview = (props: AlbumProps): JSX.Element => {
       }}
     >
       <h1>{props.name}</h1>
-      {props.photos.length !== 0 && (
+      {props.images.length !== 0 && (
         <Image
-          src={props.photos[0]}
+          src={props.images[0]}
           size={"s"}
         />
       )}

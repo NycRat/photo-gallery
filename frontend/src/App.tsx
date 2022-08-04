@@ -7,7 +7,7 @@ import { AlbumProps } from "./Models/AlbumProps";
 import NotFoundPage from "./NotFoundPage";
 
 const App = (): JSX.Element => {
-  const [photoAlbums, setPhotoAlbums] = useState<AlbumProps[]>([]);
+  // const [photoAlbums, setPhotoAlbums] = useState<AlbumProps[]>([]);
   const [albumPreviews, setAlbumPreviews] = useState<AlbumProps[]>([]);
 
   useEffect(() => {
@@ -15,9 +15,19 @@ const App = (): JSX.Element => {
       let newAlbumPreviews: AlbumProps[] = [];
       const albumList = await getAlbumList();
       for (let i = 0; i < albumList.length; i++) {
+        // let album_images: string[] = [];
+        // for (let j = 0; j < await getAlbumLength(albumList[i]); j++) {
+        //   album_images.push(await getAlbumImage(albumList[i], j, "s"));
+        // }
         newAlbumPreviews.push({
           name: albumList[i],
-          photos: [await getAlbumImage(albumList[i], 0, "s")],
+          images: [
+            await getAlbumImage(
+              albumList[i],
+              Math.floor(Math.random() * (await getAlbumLength(albumList[i]))),
+              "s"
+            ),
+          ],
         });
       }
       setAlbumPreviews(newAlbumPreviews);
