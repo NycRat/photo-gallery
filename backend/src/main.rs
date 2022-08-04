@@ -20,9 +20,9 @@ async fn get_album_list(mongodb_connection: &State<MongoConnection>) -> String {
     res
 }
 
-#[get("/image?<album>&<index>")]
-async fn get_image(album: &str, index: i32, mongodb_connection: &State<MongoConnection>) -> String {
-    match mongodb_connection.get_image_data(album, index).await {
+#[get("/image?<album>&<index>&<size>")]
+async fn get_image(album: &str, index: i32, size: &str, mongodb_connection: &State<MongoConnection>) -> String {
+    match mongodb_connection.get_image_data(album, index, size).await {
         Ok(img_data) => return img_data,
         Err(e) => return e,
     }

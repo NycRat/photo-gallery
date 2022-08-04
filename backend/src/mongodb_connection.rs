@@ -28,10 +28,11 @@ impl MongoConnection {
         &self,
         album_name: &str,
         image_index: i32,
+        image_size: &str
     ) -> Result<String, String> {
         let album = self.get_album(album_name);
 
-        let doc = match album.find_one(doc! {"index": image_index}, None).await {
+        let doc = match album.find_one(doc! {"index": image_index, "size": image_size}, None).await {
             Ok(opt_doc) => {
                 if let Some(doc_real) = opt_doc {
                     doc_real
