@@ -41,18 +41,18 @@ impl MongoConnection {
         }
     }
 
-    pub fn get_album(&self, name: &str) -> mongodb::Collection<Document> {
-        self.database.collection::<Document>(name)
+    pub fn get_album(&self, name: String) -> mongodb::Collection<Document> {
+        self.database.collection::<Document>(name.as_str())
     }
 
-    pub async fn create_album(&self, album_name: &str) {
-        match self.database.create_collection(album_name, None).await {
+    pub async fn create_album(&self, album_name: String) {
+        match self.database.create_collection(&album_name, None).await {
             Ok(_) => println!("Created album: {}", album_name),
             Err(e) => println!("{}", e),
         }
     }
 
-    pub async fn insert_images(&self, album_name: &str, image_data_vec: Vec<Vec<u8>>) {
+    pub async fn insert_images(&self, album_name: String, image_data_vec: Vec<Vec<u8>>) {
         let album = self.get_album(album_name);
 
         use mongodb::bson::spec::BinarySubtype;
@@ -70,6 +70,7 @@ impl MongoConnection {
                 .insert_one(
                     doc! {
                         "index": image_index,
+                        "size": "preview", // preview, medium, full
                         "image_data": data
                     },
                     None,
