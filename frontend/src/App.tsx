@@ -7,7 +7,6 @@ import { AlbumProps } from "./Models/AlbumProps";
 import NotFoundPage from "./NotFoundPage";
 
 const App = (): JSX.Element => {
-  // const [photoAlbums, setPhotoAlbums] = useState<AlbumProps[]>([]);
   const [albumPreviews, setAlbumPreviews] = useState<AlbumProps[]>([]);
 
   useEffect(() => {
@@ -15,10 +14,6 @@ const App = (): JSX.Element => {
       let newAlbumPreviews: AlbumProps[] = [];
       const albumList = await getAlbumList();
       for (let i = 0; i < albumList.length; i++) {
-        // let album_images: string[] = [];
-        // for (let j = 0; j < await getAlbumLength(albumList[i]); j++) {
-        //   album_images.push(await getAlbumImage(albumList[i], j, "s"));
-        // }
         newAlbumPreviews.push({
           name: albumList[i],
           images: [
@@ -29,6 +24,7 @@ const App = (): JSX.Element => {
             ),
           ],
         });
+        // setAlbumPreviews(newAlbumPreviews); // doesnt work yet
       }
       setAlbumPreviews(newAlbumPreviews);
     };
@@ -40,7 +36,10 @@ const App = (): JSX.Element => {
     <div className="app">
       <HashRouter>
         <Routes>
-          <Route path="/" element={<MainPage photoAlbums={albumPreviews} />} />
+          <Route
+            path="/"
+            element={<MainPage albumPreviews={albumPreviews} />}
+          />
           <Route path="/album/:albumName" element={<AlbumPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
@@ -48,4 +47,5 @@ const App = (): JSX.Element => {
     </div>
   );
 };
+
 export default App;

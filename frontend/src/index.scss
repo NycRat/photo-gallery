@@ -30,13 +30,32 @@ body,
   border: 1px solid #000;
 }
 
-.image-s {
+.back-button {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 10px;
+  font-size: 20px;
+  font-family: 'Raleway', sans-serif;
+}
+
+.image {
+  display: inline-block;
+  margin: 20px;
+  padding: 10px;
+  background-color: #ccc;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.s {
   width: 400px;
 }
 
-.image-m {
+.m {
   width: 800px;
 }
 
-.image-l {
+.l {
 }
