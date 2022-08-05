@@ -9,54 +9,47 @@ pub struct MongoConnection {
 
 impl MongoConnection {
     pub async fn init() -> Self {
-        async fn get_database() -> mongodb::error::Result<mongodb::Database> {
-            dotenv().ok();
-            let uri = match env::var("MONGODB_URI") {
-                Ok(v) => v.to_string(),
-                Err(_) => format!("Error loading env"),
-            };
+        dotenv().ok();
+        let uri = env::var("MONGODB_URI").unwrap();
 
-            let client_options = mongodb::options::ClientOptions::parse(uri).await?;
+        let client_options = mongodb::options::ClientOptions::parse(uri).await.unwrap();
+        let client = mongodb::Client::with_options(client_options).unwrap();
 
-            let client = mongodb::Client::with_options(client_options)?;
+        let database = client.database("albumDB");
 
-            let database = client.database("albumDB");
-
-            Ok(database)
-        }
-
-        let mut database: Option<mongodb::Database> = None;
-
-        match get_database().await {
-            Ok(db) => {
-                database = Some(db);
-            }
-            Err(err) => {
-                println!("{}", err);
-            }
-        }
-
-        MongoConnection {
-            database: database.unwrap(),
-        }
+        MongoConnection { database }
     }
 
-    pub fn get_album(&self, name: String) -> mongodb::Collection<Document> {
+    pub fn get_album(&self, name: &String) -> mongodb::Collection<Document> {
         self.database.collection::<Document>(name.as_str())
     }
 
-    pub async fn create_album(&self, album_name: String) {
+    pub async fn get_album_len(&self, name: &String) -> i32 {
+        self.get_album(name)
+            .count_documents(doc! {"size": "s"}, None)
+            .await
+            .unwrap() as i32
+    }
+
+    pub async fn create_album(&self, album_name: &String) {
         match self.database.create_collection(&album_name, None).await {
             Ok(_) => println!("Created album: {}", album_name),
             Err(e) => println!("{}", e),
         }
     }
 
+    pub async fn delete_album(&self, album_name: &String) {
+        match self.get_album(album_name).drop(None).await {
+            Ok(_) => println!("Deleted album: {}", album_name),
+            Err(e) => println!("{}", e),
+        }
+    }
+
     pub async fn insert_images(
         &self,
-        album_name: String,
-        image_data_vec: Vec<Vec<u8>>,
-        image_size: String,
+        album_name: &String,
+        image_data_vec: &Vec<Vec<u8>>,
+        image_size: &String,
     ) {
         match image_size.as_str() {
             "s" | "m" | "l" => {}
@@ -65,7 +58,7 @@ impl MongoConnection {
             }
         }
 
-        let album = self.get_album(album_name);
+        let album = self.get_album(&album_name);
 
         use mongodb::bson::spec::BinarySubtype;
         use mongodb::bson::Binary;
@@ -78,7 +71,7 @@ impl MongoConnection {
         for image_data in image_data_vec {
             let data = Binary {
                 subtype: BinarySubtype::Generic,
-                bytes: image_data,
+                bytes: image_data.to_vec(),
             };
 
             match album

@@ -39,8 +39,16 @@ async fn parse(input_args: &Vec<String>) -> Result<(), args::ArgsError> {
     args.option(
         "s",
         "size",
-        "Size of photo (preview, medium, full)",
+        "Size of photo (s, m, l)",
         "SIZE",
+        getopts::Occur::Optional,
+        Some("".to_owned()),
+    );
+    args.option(
+        "i",
+        "index",
+        "Index of image",
+        "INDEX",
         getopts::Occur::Optional,
         Some("".to_owned()),
     );
@@ -68,7 +76,7 @@ async fn parse(input_args: &Vec<String>) -> Result<(), args::ArgsError> {
 
             let db_connection = MongoConnection::init().await;
             db_connection
-                .insert_images(album_name, file_data_vec, image_size)
+                .insert_images(&album_name, &file_data_vec, &image_size)
                 .await;
         }
         "insert_album" => {
@@ -92,13 +100,39 @@ async fn parse(input_args: &Vec<String>) -> Result<(), args::ArgsError> {
             }
             let db_connection = MongoConnection::init().await;
             db_connection
-                .insert_images(album_dir, file_data_vec, image_size)
+                .insert_images(&album_dir, &file_data_vec, &image_size)
                 .await;
         }
         "create_album" => {
             let album_name = args.value_of::<String>("name").unwrap();
             let db_connection = MongoConnection::init().await;
-            db_connection.create_album(album_name).await;
+            db_connection.create_album(&album_name).await;
+        }
+        "delete_image" => {
+            let album_name = args.value_of::<String>("name").unwrap();
+            let image_index = args.value_of::<i32>("index").unwrap();
+            let mut line = String::new();
+            std::io::stdin().read_line(&mut line).unwrap();
+            let db_connection = MongoConnection::init().await;
+        }
+        "delete_album" => {
+            let album_name = args.value_of::<String>("name").unwrap();
+            let db_connection = MongoConnection::init().await;
+            println!(
+                "Delete \"{}\" with {} images?",
+                album_name,
+                db_connection.get_album_len(&album_name).await
+            );
+            print!("Retype album name to confirm: ");
+            std::io::Write::flush(&mut std::io::stdout()).unwrap();
+
+            let mut y_n = String::new();
+            std::io::stdin().read_line(&mut y_n).unwrap();
+            if y_n.trim_end() == album_name {
+                db_connection.delete_album(&album_name).await;
+            } else {
+                println!("Album names do not match");
+            }
         }
         _ => println!("{}", args.full_usage()),
     }

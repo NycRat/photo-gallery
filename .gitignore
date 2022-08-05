@@ -2,4 +2,7 @@ node_modules
 build
 .DS_Store
 .env
+photo_admin
+*.jpeg
+*.jpg
 
