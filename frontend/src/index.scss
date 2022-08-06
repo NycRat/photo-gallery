@@ -30,6 +30,13 @@ body,
   border: 1px solid #000;
 }
 
+.album-page {
+  h1 {
+    padding: 20px;
+    margin: 0;
+  }
+}
+
 .back-button {
   position: absolute;
   top: 10px;
@@ -59,3 +66,4 @@ body,
 
 .l {
 }
+

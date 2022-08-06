@@ -9,18 +9,38 @@ import NotFoundPage from "./NotFoundPage";
 
 const App = (): JSX.Element => {
   const [albumPreviews, setAlbumPreviews] = useState<AlbumProps[]>([]);
-  const previewIndices = useRef<number[]>([]);
   const [albumList, setAlbumList] = useState<string[]>([]);
+  const [loadedXs, setLoadedXs] = useState<boolean>(false);
+  const previewIndices = useRef<number[]>([]);
+  const loadIndex = useRef<number>(0);
 
   useEffect(() => {
     const getAlbums = async () => {
       const albumList = await getAlbumList();
+      for (let i = 0; i < albumList.length; i++) {
+        previewIndices.current.push(
+          Math.floor(Math.random() * await getAlbumLength(albumList[i]))
+        );
+      }
+      console.log(previewIndices.current);
       setAlbumList(albumList);
     };
     getAlbums();
   }, []);
 
-  const pushPreview = useCallback( async (imageSize: ImageSize, index: number) => {
+  const fetchPreview = useCallback( async (imageSize: ImageSize) => {
+    let index = loadIndex.current;
+    if (albumList.length === 0) {
+      return;
+    }
+    if (index >= albumList.length) {
+      if (!loadedXs) {
+        setLoadedXs(true);
+        loadIndex.current = 0;
+        return;
+      }
+      return;
+    }
     const albumPreview = {
       name: albumList[index],
       images: [
@@ -31,27 +51,27 @@ const App = (): JSX.Element => {
         ),
       ],
     };
-    setAlbumPreviews([...albumPreviews, albumPreview]);
-  }, [albumList, albumPreviews]);
+    if (index < albumList.length) {
+      let newAlbumPreviews = [...albumPreviews];
+      newAlbumPreviews[index] = albumPreview;
+      setAlbumPreviews(newAlbumPreviews);
+    } else {
+      setAlbumPreviews([...albumPreviews, albumPreview]);
+    }
+    loadIndex.current++;
+  }, [albumList, albumPreviews, loadedXs]);
 
   useEffect(() => {
-    if (previewIndices.current.length >= albumList.length) {
-      return;
+    if (!loadedXs) {
+      fetchPreview("xs");
     }
-    const pushPreviewAndIndex = async () => {
-      // we dont put together because of somethign will implement later
-      previewIndices.current.push(
-        Math.floor(
-          Math.random() *
-            (await getAlbumLength(albumList[previewIndices.current.length]))
-        )
-      );
-      pushPreview("s", previewIndices.current.length-1);
-    };
-    setTimeout(() => {
-      pushPreviewAndIndex();
-    }, 200);
-  }, [albumList, albumPreviews, pushPreview]);
+  }, [fetchPreview, loadedXs, albumList]);
+
+  useEffect(() => {
+    if (loadedXs) {
+      fetchPreview("s");
+    }
+  }, [fetchPreview, loadedXs, albumList]);
 
   return (
     <div className="app">
