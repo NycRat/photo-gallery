@@ -12,25 +12,34 @@ const AlbumPage = (): JSX.Element => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchPhotos = async (): Promise<void> => {
+    const fetchPhoto = async () => {
       if (!albumName) {
         setIsLoading(false);
         return;
       }
-      let albumPhotos: string[] = [];
-      for (let i = 0; i < (await getAlbumLength(albumName)); i++) {
-        albumPhotos.push(await getAlbumImage(albumName, i, "s"));
-        // TODO - make so rerendering after loading each image
+      if (photos.length >= (await getAlbumLength(albumName))) {
+        setIsLoading(false);
+        return;
       }
-      setPhotos(albumPhotos);
+      setPhotos([
+        ...photos,
+        await getAlbumImage(albumName, photos.length, "s"),
+      ]);
       setIsLoading(false);
     };
-    fetchPhotos();
-  }, [albumName]);
+    fetchPhoto();
+  }, [photos, albumName]);
 
   return (
     <div className="album-page">
-      <button className="back-button" onClick={() => {navigate("/")}}>{"Gallery"}</button>
+      <button
+        className="back-button"
+        onClick={() => {
+          navigate("/");
+        }}
+      >
+        {"Gallery"}
+      </button>
       {isLoading ? (
         <h1>Loading ...</h1>
       ) : photos.length !== 0 ? (

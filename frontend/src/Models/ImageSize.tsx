@@ -1,3 +1,3 @@
-type ImageSize = "l" | "m" | "s";
+type ImageSize = "xs" | "s" | "m" | "l";
 
 export default ImageSize;
