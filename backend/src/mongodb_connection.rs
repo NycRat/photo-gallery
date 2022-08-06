@@ -37,20 +37,20 @@ impl MongoConnection {
                 if let Some(doc_real) = opt_doc {
                     doc_real
                 } else {
-                    return Err("Image does not exist".to_string());
+                    return Err("Image does not exist".to_owned());
                 }
             }
             Err(e) => {
-                println!("{}", e.to_string());
-                return Err("MongoDB Error".to_string());
+                println!("{}", e.to_owned());
+                return Err("MongoDB Error".to_owned());
             }
         };
 
         if let Some(bson_data) = doc.get("image_data") {
             let data = bson_data.to_string();
-            return Ok(data[11..data.len() - 1].to_string()); // get rid of Binary(0x0, .... )
+            return Ok(data[11..data.len() - 1].to_owned()); // get rid of Binary(0x0, .... )
         } else {
-            return Err("Image data does not exist".to_string());
+            return Err("Image data does not exist".to_owned());
         }
     }
 
@@ -59,7 +59,7 @@ impl MongoConnection {
     }
 
     pub async fn get_album_length(&self, album_name: &str) -> String {
-        match self.get_album(album_name).count_documents(None, None).await {
+        match self.get_album(album_name).count_documents(doc!["size": "s"], None).await {
             Ok(len) => {
                 return len.to_string();
             }

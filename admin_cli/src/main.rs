@@ -39,7 +39,7 @@ async fn parse(input_args: &Vec<String>) -> Result<(), args::ArgsError> {
     args.option(
         "s",
         "size",
-        "Size of photo (s, m, l)",
+        "Size of photo (xs, s, m, l)",
         "SIZE",
         getopts::Occur::Optional,
         Some("".to_owned()),
@@ -82,19 +82,19 @@ async fn parse(input_args: &Vec<String>) -> Result<(), args::ArgsError> {
         "insert_album" => {
             let album_dir = args.value_of::<String>("name").unwrap();
             let image_size = args.value_of::<String>("size").unwrap();
-            let image_files = std::fs::read_dir(&album_dir).unwrap();
+            let mut image_files: Vec<_> = std::fs::read_dir(&album_dir).unwrap()
+                .map(|f| f.unwrap()).collect();
+
+            image_files.sort_by_key(|dir| dir.path());
+
             let mut file_data_vec: Vec<Vec<u8>> = Vec::new();
             for image_file in image_files {
-                if image_file
-                    .as_ref()
-                    .unwrap()
-                    .file_name()
-                    .to_ascii_lowercase()
+                if image_file.file_name().to_ascii_lowercase()
                     == ".ds_store"
                 {
                     continue;
                 }
-                let hting = image_file.unwrap().path();
+                let hting = image_file.path();
                 let image_file_path = hting.to_str().unwrap();
                 file_data_vec.push(file_util::get_data_from_file(image_file_path));
             }

@@ -52,7 +52,7 @@ impl MongoConnection {
         image_size: &String,
     ) {
         match image_size.as_str() {
-            "s" | "m" | "l" => {}
+            "xs" | "s" | "m" | "l" => {}
             _ => {
                 return;
             }

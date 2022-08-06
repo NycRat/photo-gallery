@@ -9,7 +9,6 @@ mod mongodb_connection;
 #[get("/album/list")]
 async fn get_album_list(mongodb_connection: &State<MongoConnection>) -> String {
     let albums = mongodb_connection.get_album_list().await;
-    // albums.into_iter().map(|e| e.to_string() + "\n").collect()
     let mut res = String::new();
     for i in 0..albums.len() {
         res.push_str(&albums[i]);
@@ -32,8 +31,6 @@ async fn get_image(album: &str, index: i32, size: &str, mongodb_connection: &Sta
 async fn get_album_length(name: &str, mongodb_connection: &State<MongoConnection>) -> String {
     mongodb_connection.get_album_length(name).await
 }
-
-// #[get("/image/album?<album_name>")]
 
 #[launch]
 async fn rocket() -> _ {
