@@ -127,7 +127,7 @@ const AlbumPage = (): JSX.Element => {
             <Image
               key={selectedImageIndex}
               src={images[selectedImageIndex].data}
-              size={"l"}
+              size={"m"}
             />
           </div>
         ) : (
