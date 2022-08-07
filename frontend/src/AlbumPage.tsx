@@ -8,7 +8,7 @@ const AlbumPage = (): JSX.Element => {
   const [images, setImages] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [albumLength, setAlbumLength] = useState<number>(0);
-  const [loadedXs, setLoadedXs] = useState<boolean>(false);
+  const [loadedX, setLoadedX] = useState<boolean>(false);
   const loadIndex = useRef<number>(0);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(-1);
 
@@ -34,8 +34,8 @@ const AlbumPage = (): JSX.Element => {
         return;
       }
       if (loadIndex.current >= albumLength) {
-        if (!loadedXs) {
-          setLoadedXs(true);
+        if (!loadedX) {
+          setLoadedX(true);
           loadIndex.current = 0;
           return;
         }
@@ -52,20 +52,20 @@ const AlbumPage = (): JSX.Element => {
       }
       loadIndex.current++;
     },
-    [albumLength, albumName, images, loadedXs]
+    [albumLength, albumName, images, loadedX]
   );
 
   useEffect(() => {
-    if (!loadedXs) {
-      fetchPhoto("xs");
+    if (!loadedX) {
+      fetchPhoto("x");
     }
-  }, [fetchPhoto, loadedXs]);
+  }, [fetchPhoto, loadedX]);
 
   useEffect(() => {
-    if (loadedXs) {
+    if (loadedX) {
       fetchPhoto("s");
     }
-  }, [fetchPhoto, loadedXs]);
+  }, [fetchPhoto, loadedX]);
 
   return (
     <div className="album-page">

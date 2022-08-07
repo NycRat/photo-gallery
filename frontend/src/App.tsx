@@ -10,7 +10,7 @@ import NotFoundPage from "./NotFoundPage";
 const App = (): JSX.Element => {
   const [albumPreviews, setAlbumPreviews] = useState<AlbumProps[]>([]);
   const [albumList, setAlbumList] = useState<string[]>([]);
-  const [loadedXs, setLoadedXs] = useState<boolean>(false);
+  const [loadedX, setLoadedX] = useState<boolean>(false);
   const previewIndices = useRef<number[]>([]);
   const loadIndex = useRef<number>(0);
 
@@ -34,8 +34,8 @@ const App = (): JSX.Element => {
       return;
     }
     if (index >= albumList.length) {
-      if (!loadedXs) {
-        setLoadedXs(true);
+      if (!loadedX) {
+        setLoadedX(true);
         loadIndex.current = 0;
         return;
       }
@@ -59,19 +59,19 @@ const App = (): JSX.Element => {
       setAlbumPreviews([...albumPreviews, albumPreview]);
     }
     loadIndex.current++;
-  }, [albumList, albumPreviews, loadedXs]);
+  }, [albumList, albumPreviews, loadedX]);
 
   useEffect(() => {
-    if (!loadedXs) {
-      fetchPreview("xs");
+    if (!loadedX) {
+      fetchPreview("x");
     }
-  }, [fetchPreview, loadedXs, albumList]);
+  }, [fetchPreview, loadedX, albumList]);
 
   useEffect(() => {
-    if (loadedXs) {
+    if (loadedX) {
       fetchPreview("s");
     }
-  }, [fetchPreview, loadedXs, albumList]);
+  }, [fetchPreview, loadedX, albumList]);
 
   return (
     <div className="app">

@@ -1,5 +1,6 @@
 extern crate args;
 extern crate getopts;
+use file_util::{get_image_file, save_image_file, scale_image_file, get_no_extension, get_image_size};
 use mongodb_connection::MongoConnection;
 use std::env;
 
@@ -62,45 +63,82 @@ async fn parse(input_args: &Vec<String>) -> Result<(), args::ArgsError> {
     let action: String = args.value_of("action").unwrap();
 
     match action.as_str() {
-        "insert_images" => {
-            let album_name = args.value_of::<String>("name").unwrap();
-            let image_size = args.value_of::<String>("size").unwrap();
-            let arg_files = args.value_of::<String>("files").unwrap();
-
-            let mut file_data_vec: Vec<Vec<u8>> = Vec::new();
-            let input_files = arg_files.split(" ");
-
-            for file in input_files {
-                file_data_vec.push(file_util::get_data_from_file(file));
-            }
-
-            let db_connection = MongoConnection::init().await;
-            db_connection
-                .insert_images(&album_name, &file_data_vec, &image_size)
-                .await;
-        }
-        "insert_album" => {
-            let album_dir = args.value_of::<String>("name").unwrap();
-            let image_size = args.value_of::<String>("size").unwrap();
-            let mut image_files: Vec<_> = std::fs::read_dir(&album_dir)
+        "scale_images" => {
+            let files_dir = args.value_of::<String>("name").unwrap();
+            let mut image_files: Vec<_> = std::fs::read_dir(&files_dir)
                 .unwrap()
                 .map(|f| f.unwrap())
                 .collect();
+
             image_files.sort_by_key(|file| file.path());
 
-            let mut file_data_vec: Vec<Vec<u8>> = Vec::new();
             for image_file in image_files {
                 if image_file.file_name().to_ascii_lowercase() == ".ds_store" {
                     continue;
                 }
                 let hting = image_file.path();
                 let image_file_path = hting.to_str().unwrap();
-                file_data_vec.push(file_util::get_data_from_file(image_file_path));
+
+                let image = get_image_file(image_file_path);
+
+                let path_no_extension = get_no_extension(image_file_path, 5);
+
+                let x = path_no_extension.clone() + "_x.jpeg";
+                save_image_file(x.as_str(), &scale_image_file(&image, 1f32/24f32));
+                let s = path_no_extension.clone() + "_s.jpeg";
+                save_image_file(s.as_str(), &scale_image_file(&image, 1f32/4f32));
+                let m = path_no_extension.clone() + "_m.jpeg";
+                save_image_file(m.as_str(), &scale_image_file(&image, 1f32/2f32));
+
+                std::fs::rename(image_file_path, path_no_extension.clone() + "_l.jpeg").unwrap();
+
             }
+        }
+        "insert_images" => {
+            // let album_name = args.value_of::<String>("name").unwrap();
+            // let image_size = args.value_of::<String>("size").unwrap();
+            // let arg_files = args.value_of::<String>("files").unwrap();
+
+            // let input_files = arg_files.split(" ");
+
+            // let db_connection = MongoConnection::init().await;
+
+            // for file in input_files {
+            //     let image_data = file_util::get_data_from_file(file);
+            //     db_connection
+            //         .insert_image(&album_name, &image_data, &image_size)
+            //         .await;
+            // }
+
+        }
+        "insert_album" => {
+            let album_dir = args.value_of::<String>("name").unwrap();
+            let mut image_files: Vec<_> = std::fs::read_dir(&album_dir)
+                .unwrap()
+                .map(|f| f.unwrap())
+                .collect();
+            image_files.sort_by_key(|file| file.path());
+
             let db_connection = MongoConnection::init().await;
-            db_connection
-                .insert_images(&album_dir, &file_data_vec, &image_size)
-                .await;
+            for image_file in image_files {
+                if image_file.file_name().to_ascii_lowercase() == ".ds_store" {
+                    continue;
+                }
+                let hting = image_file.path();
+                let image_file = hting.to_str().unwrap();
+                let image_size = get_image_size(image_file);
+                match image_size.as_str() {
+                    "x" | "s" | "m" | "l" => {}
+                    _ => {continue;}
+                }
+
+
+                let image_data = file_util::get_data_from_file(image_file);
+
+                db_connection
+                    .insert_image(&album_dir, &image_data, &image_size)
+                    .await;
+            }
         }
         "create_album" => {
             let album_name = args.value_of::<String>("name").unwrap();

@@ -45,15 +45,16 @@ impl MongoConnection {
         }
     }
 
-    pub async fn insert_images(
+    pub async fn insert_image(
         &self,
         album_name: &String,
-        image_data_vec: &Vec<Vec<u8>>,
+        image_data: &Vec<u8>,
         image_size: &String,
     ) {
         match image_size.as_str() {
-            "s" | "m" | "l" => {}
+            "x" | "s" | "m" | "l" => {}
             _ => {
+                println!("{} is not a valid size. (x, s, m, l)", image_size);
                 return;
             }
         }
@@ -63,34 +64,31 @@ impl MongoConnection {
         use mongodb::bson::spec::BinarySubtype;
         use mongodb::bson::Binary;
 
-        let mut image_index: u32 = album
+        let image_index: u32 = album
             .count_documents(doc! {"size": &image_size}, None)
             .await
             .unwrap() as u32;
 
-        for image_data in image_data_vec {
-            let data = Binary {
-                subtype: BinarySubtype::Generic,
-                bytes: image_data.to_vec(),
-            };
+        let data = Binary {
+            subtype: BinarySubtype::Generic,
+            bytes: image_data.to_vec(),
+        };
 
-            match album
-                .insert_one(
-                    doc! {
-                        "index": image_index,
-                        "size": image_size.as_str(),
-                        "image_data": data
-                    },
-                    None,
-                )
-                .await
-            {
-                Ok(_res) => {
-                    println!("Inserted image with at index: {}", image_index);
-                    image_index += 1;
-                }
-                Err(e) => println!("{}", e),
-            };
-        }
+        match album
+            .insert_one(
+                doc! {
+                    "index": image_index,
+                    "size": image_size,
+                    "image_data": data
+                },
+                None,
+            )
+            .await
+        {
+            Ok(_res) => {
+                println!("Inserted {} image with at index: {}", image_size ,image_index);
+            }
+            Err(e) => println!("{}", e),
+        };
     }
 }
