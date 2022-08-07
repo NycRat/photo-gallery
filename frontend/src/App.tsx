@@ -22,7 +22,6 @@ const App = (): JSX.Element => {
           Math.floor(Math.random() * await getAlbumLength(albumList[i]))
         );
       }
-      console.log(previewIndices.current);
       setAlbumList(albumList);
     };
     getAlbums();

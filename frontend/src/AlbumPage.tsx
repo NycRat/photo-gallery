@@ -5,7 +5,7 @@ import Image from "./Components/Image";
 import ImageSize from "./Models/ImageSize";
 
 const AlbumPage = (): JSX.Element => {
-  const [images, setImages] = useState<string[]>([]);
+  const [images, setImages] = useState<{ data: string; size: ImageSize }[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [albumLength, setAlbumLength] = useState<number>(0);
   const [loadedX, setLoadedX] = useState<boolean>(false);
@@ -17,7 +17,6 @@ const AlbumPage = (): JSX.Element => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log("AES");
     if (!albumName) {
       return;
     }
@@ -45,10 +44,10 @@ const AlbumPage = (): JSX.Element => {
       let image = await getAlbumImage(albumName, loadIndex.current, imageSize);
       if (loadIndex.current < images.length) {
         let newImages = [...images];
-        newImages[loadIndex.current] = image;
+        newImages[loadIndex.current] = { data: image, size: imageSize };
         setImages(newImages);
       } else {
-        setImages([...images, image]);
+        setImages([...images, { data: image, size: imageSize }]);
       }
       loadIndex.current++;
     },
@@ -66,6 +65,31 @@ const AlbumPage = (): JSX.Element => {
       fetchPhoto("s");
     }
   }, [fetchPhoto, loadedX]);
+
+  const getMPhoto = useCallback(
+    async (index: number) => {
+      if (!albumName) {
+        return;
+      }
+      if (images[index].size === "m" || images[index].size === "l") {
+        return;
+      }
+
+      let newImages = [...images];
+      newImages[index] = {
+        data: await getAlbumImage(albumName, index, "m"),
+        size: "m",
+      };
+      setImages(newImages);
+    },
+    [albumName, images]
+  );
+
+  useEffect(() => {
+    if (selectedImageIndex >= 0 && selectedImageIndex < images.length) {
+      getMPhoto(selectedImageIndex);
+    }
+  }, [getMPhoto, images.length, selectedImageIndex]);
 
   return (
     <div className="album-page">
@@ -102,7 +126,7 @@ const AlbumPage = (): JSX.Element => {
             </button>
             <Image
               key={selectedImageIndex}
-              src={images[selectedImageIndex]}
+              src={images[selectedImageIndex].data}
               size={"l"}
             />
           </div>
@@ -112,7 +136,7 @@ const AlbumPage = (): JSX.Element => {
             {images.map((photo, i) => (
               <Image
                 key={i}
-                src={photo}
+                src={photo.data}
                 size={"s"}
                 onClick={() => setSelectedImageIndex(i)}
               />
