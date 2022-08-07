@@ -10,6 +10,7 @@ const AlbumPage = (): JSX.Element => {
   const [albumLength, setAlbumLength] = useState<number>(0);
   const [loadedXs, setLoadedXs] = useState<boolean>(false);
   const loadIndex = useRef<number>(0);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number>(-1);
 
   const { albumName } = useParams();
 
@@ -23,33 +24,36 @@ const AlbumPage = (): JSX.Element => {
     const getAlbumLen = async () => {
       setAlbumLength(await getAlbumLength(albumName));
       setIsLoading(false);
-    }
+    };
     getAlbumLen();
   }, [albumName]);
 
-  const fetchPhoto = useCallback(async (imageSize: ImageSize) => {
-    if (!albumName || albumLength === 0) {
-      return;
-    }
-    if (loadIndex.current >= albumLength) {
-      if (!loadedXs) {
-        setLoadedXs(true);
-        loadIndex.current = 0;
+  const fetchPhoto = useCallback(
+    async (imageSize: ImageSize) => {
+      if (!albumName || albumLength === 0) {
         return;
       }
-      return;
-    }
+      if (loadIndex.current >= albumLength) {
+        if (!loadedXs) {
+          setLoadedXs(true);
+          loadIndex.current = 0;
+          return;
+        }
+        return;
+      }
 
-    let image = await getAlbumImage(albumName, loadIndex.current, imageSize);
-    if (loadIndex.current < images.length) {
-      let newImages = [...images];
-      newImages[loadIndex.current] = image;
-      setImages(newImages);
-    } else {
-      setImages([...images, image]);
-    }
-    loadIndex.current++;
-  }, [albumLength, albumName, images, loadedXs]);
+      let image = await getAlbumImage(albumName, loadIndex.current, imageSize);
+      if (loadIndex.current < images.length) {
+        let newImages = [...images];
+        newImages[loadIndex.current] = image;
+        setImages(newImages);
+      } else {
+        setImages([...images, image]);
+      }
+      loadIndex.current++;
+    },
+    [albumLength, albumName, images, loadedXs]
+  );
 
   useEffect(() => {
     if (!loadedXs) {
@@ -65,23 +69,56 @@ const AlbumPage = (): JSX.Element => {
 
   return (
     <div className="album-page">
-      <button
-        className="back-button"
-        onClick={() => {
-          navigate("/");
-        }}
-      >
-        {"Gallery"}
-      </button>
+      {
+        // this is the most cancer code i have seen
+        !(
+          !isLoading &&
+          selectedImageIndex >= 0 &&
+          selectedImageIndex < images.length &&
+          albumLength !== 0
+        ) && (
+          <button
+            className="back-button"
+            onClick={() => {
+              navigate("/");
+            }}
+          >
+            {"Gallery"}
+          </button>
+        )
+      }
       {isLoading ? (
         <h1>Loading ...</h1>
       ) : albumLength !== 0 ? (
-        <div>
-          <h1>{albumName}</h1>
-          {images.map((photo, i) => (
-            <Image key={i} src={photo} size={"s"} />
-          ))}
-        </div>
+        selectedImageIndex >= 0 && selectedImageIndex < images.length ? (
+          <div>
+            <button
+              className="back-button"
+              onClick={() => {
+                setSelectedImageIndex(-1);
+              }}
+            >
+              {"Back"}
+            </button>
+            <Image
+              key={selectedImageIndex}
+              src={images[selectedImageIndex]}
+              size={"l"}
+            />
+          </div>
+        ) : (
+          <div>
+            <h1>{albumName}</h1>
+            {images.map((photo, i) => (
+              <Image
+                key={i}
+                src={photo}
+                size={"s"}
+                onClick={() => setSelectedImageIndex(i)}
+              />
+            ))}
+          </div>
+        )
       ) : (
         <h1>404 Album Not Found</h1>
       )}
