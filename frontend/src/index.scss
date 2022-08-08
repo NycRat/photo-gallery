@@ -19,11 +19,12 @@ body,
 .album {
   display: inline-block;
   margin: 20px;
-  padding: 20px;
+  padding: min(20px, 1vw);
   padding-top: 10px;
   border: 1px solid #ccc;
   border-radius: 10px;
   cursor: pointer;
+  max-width: 80%;
 }
 
 .album:hover {
@@ -47,30 +48,31 @@ body,
   padding: 10px;
   font-size: 20px;
   font-family: 'Raleway', sans-serif;
+  cursor: pointer;
 }
 
 .image {
   display: inline-block;
-  margin: 20px;
-  padding: 10px;
-  background-color: #ccc;
+  margin: min(20px, 1vw);
+  border: 2px solid #ccc;
   border-radius: 10px;
   cursor: pointer;
 }
 
 .x {
-  width: 400px;
+  width: min(75vw, 400px);
 }
 
 .s {
-  width: 800px;
+  width: min(75vw, 400px);
 }
 
 .m {
   border-radius: 0;
   padding: 0;
-  max-height: 95%;
   max-width: 95%;
+  // width: min(95%, 1000px);
+  max-height: 95%;
   position: absolute;
   top: 0;
   bottom: 0;
