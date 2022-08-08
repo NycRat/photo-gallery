@@ -67,13 +67,13 @@ const App = (): JSX.Element => {
 
   useEffect(() => {
     if (!loadedX) {
-      fetchPreview("x");
+      fetchPreview(ImageSize.x);
     }
   }, [fetchPreview, loadedX, albumList]);
 
   useEffect(() => {
     if (loadedX) {
-      fetchPreview("s");
+      fetchPreview(ImageSize.s);
     }
   }, [fetchPreview, loadedX, albumList]);
 

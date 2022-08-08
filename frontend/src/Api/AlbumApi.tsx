@@ -1,5 +1,5 @@
 import axios from "axios";
-import ImageSize from "../Models/ImageSize";
+import ImageSize, {imageSizeToString} from "../Models/ImageSize";
 import ServerURL from "./ServerURL";
 
 export const getAlbumList = async (): Promise<string[]> => {
@@ -18,7 +18,7 @@ export const getAlbumImage = async (
   size: ImageSize
 ): Promise<string> => {
   const res = await axios.get(
-    `${ServerURL}/image?album=${albumName}&index=${index}&size=${size}`
+    `${ServerURL}/image?album=${albumName}&index=${index}&size=${imageSizeToString(size)}`
   );
   return res.data;
 };

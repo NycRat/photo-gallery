@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getAlbumImage, getAlbumLength } from "./Api/AlbumApi";
 import Image from "./Components/Image";
@@ -9,7 +9,7 @@ const AlbumPage = (): JSX.Element => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [albumLength, setAlbumLength] = useState<number>(0);
   const [loadedX, setLoadedX] = useState<boolean>(false);
-  const loadIndex = useRef<number>(0);
+  const [loadIndex, setLoadIndex] = useState<number>(0);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(-1);
 
   const { albumName } = useParams();
@@ -28,68 +28,59 @@ const AlbumPage = (): JSX.Element => {
   }, [albumName]);
 
   const fetchPhoto = useCallback(
-    async (imageSize: ImageSize) => {
+    async (index: number, imageSize: ImageSize, incLoadIndex: boolean) => {
       if (!albumName || albumLength === 0) {
         return;
       }
-      if (loadIndex.current >= albumLength) {
-        if (!loadedX) {
-          setLoadedX(true);
-          loadIndex.current = 0;
+      if (incLoadIndex) {
+        if (loadIndex >= albumLength) {
+          if (!loadedX) {
+            setLoadedX(true);
+            setLoadIndex(0);
+          }
           return;
         }
-        return;
       }
 
-      let image = await getAlbumImage(albumName, loadIndex.current, imageSize);
-      if (loadIndex.current < images.length) {
+      let image = await getAlbumImage(albumName, index, imageSize);
+      if (index < images.length) {
+        if (images[index].size >= imageSize) {
+          if (incLoadIndex) {
+            setLoadIndex(loadIndex + 1);
+          }
+          return;
+        }
         let newImages = [...images];
-        newImages[loadIndex.current] = { data: image, size: imageSize };
+        newImages[index] = { data: image, size: imageSize };
         setImages(newImages);
       } else {
         setImages([...images, { data: image, size: imageSize }]);
       }
-      loadIndex.current++;
+
+      if (incLoadIndex) {
+        setLoadIndex(loadIndex + 1);
+      }
     },
-    [albumLength, albumName, images, loadedX]
+    [albumLength, albumName, images, loadIndex, loadedX]
   );
 
   useEffect(() => {
     if (!loadedX) {
-      fetchPhoto("x");
+      fetchPhoto(loadIndex, ImageSize.x, true);
     }
-  }, [fetchPhoto, loadedX]);
+  }, [fetchPhoto, images.length, loadIndex, loadedX, selectedImageIndex]);
 
   useEffect(() => {
     if (loadedX) {
-      fetchPhoto("s");
+      fetchPhoto(loadIndex, ImageSize.s, true);
     }
-  }, [fetchPhoto, loadedX]);
-
-  const getMPhoto = useCallback(
-    async (index: number) => {
-      if (!albumName) {
-        return;
-      }
-      if (images[index].size === "m" || images[index].size === "l") {
-        return;
-      }
-
-      let newImages = [...images];
-      newImages[index] = {
-        data: await getAlbumImage(albumName, index, "m"),
-        size: "m",
-      };
-      setImages(newImages);
-    },
-    [albumName, images]
-  );
+  }, [fetchPhoto, images.length, loadIndex, loadedX, selectedImageIndex]);
 
   useEffect(() => {
     if (selectedImageIndex >= 0 && selectedImageIndex < images.length) {
-      getMPhoto(selectedImageIndex);
+      fetchPhoto(selectedImageIndex, ImageSize.m, false);
     }
-  }, [getMPhoto, images.length, selectedImageIndex]);
+  }, [fetchPhoto, images.length, selectedImageIndex]);
 
   return (
     <div className="album-page">
@@ -118,16 +109,14 @@ const AlbumPage = (): JSX.Element => {
           <div>
             <button
               className="back-button"
-              onClick={() => {
-                setSelectedImageIndex(-1);
-              }}
+              onClick={() => setSelectedImageIndex(-1)}
             >
               {"Back"}
             </button>
             <Image
               key={selectedImageIndex}
               src={images[selectedImageIndex].data}
-              size={"m"}
+              size={ImageSize.m}
             />
           </div>
         ) : (
@@ -137,8 +126,12 @@ const AlbumPage = (): JSX.Element => {
               <Image
                 key={i}
                 src={photo.data}
-                size={"s"}
-                onClick={() => setSelectedImageIndex(i)}
+                size={ImageSize.s}
+                onClick={() => {
+                  if (loadedX && loadIndex >= albumLength) {
+                    setSelectedImageIndex(i);
+                  }
+                }}
               />
             ))}
           </div>
