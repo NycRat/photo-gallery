@@ -11,15 +11,17 @@ const App = (): JSX.Element => {
   const [albumPreviews, setAlbumPreviews] = useState<AlbumProps[]>([]);
   const [albumList, setAlbumList] = useState<string[]>([]);
   const [loadedX, setLoadedX] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const previewIndices = useRef<number[]>([]);
   const loadIndex = useRef<number>(0);
 
   useEffect(() => {
     const getAlbums = async () => {
       const albumList = await getAlbumList();
+      setIsLoading(false);
       for (let i = 0; i < albumList.length; i++) {
         previewIndices.current.push(
-          Math.floor(Math.random() * await getAlbumLength(albumList[i]))
+          Math.floor(Math.random() * (await getAlbumLength(albumList[i])))
         );
       }
       setAlbumList(albumList);
@@ -27,38 +29,41 @@ const App = (): JSX.Element => {
     getAlbums();
   }, []);
 
-  const fetchPreview = useCallback( async (imageSize: ImageSize) => {
-    let index = loadIndex.current;
-    if (albumList.length === 0) {
-      return;
-    }
-    if (index >= albumList.length) {
-      if (!loadedX) {
-        setLoadedX(true);
-        loadIndex.current = 0;
+  const fetchPreview = useCallback(
+    async (imageSize: ImageSize) => {
+      let index = loadIndex.current;
+      if (albumList.length === 0) {
         return;
       }
-      return;
-    }
-    const albumPreview = {
-      name: albumList[index],
-      images: [
-        await getAlbumImage(
-          albumList[index],
-          previewIndices.current[index],
-          imageSize
-        ),
-      ],
-    };
-    if (index < albumList.length) {
-      let newAlbumPreviews = [...albumPreviews];
-      newAlbumPreviews[index] = albumPreview;
-      setAlbumPreviews(newAlbumPreviews);
-    } else {
-      setAlbumPreviews([...albumPreviews, albumPreview]);
-    }
-    loadIndex.current++;
-  }, [albumList, albumPreviews, loadedX]);
+      if (index >= albumList.length) {
+        if (!loadedX) {
+          setLoadedX(true);
+          loadIndex.current = 0;
+          return;
+        }
+        return;
+      }
+      const albumPreview = {
+        name: albumList[index],
+        images: [
+          await getAlbumImage(
+            albumList[index],
+            previewIndices.current[index],
+            imageSize
+          ),
+        ],
+      };
+      if (index < albumList.length) {
+        let newAlbumPreviews = [...albumPreviews];
+        newAlbumPreviews[index] = albumPreview;
+        setAlbumPreviews(newAlbumPreviews);
+      } else {
+        setAlbumPreviews([...albumPreviews, albumPreview]);
+      }
+      loadIndex.current++;
+    },
+    [albumList, albumPreviews, loadedX]
+  );
 
   useEffect(() => {
     if (!loadedX) {
@@ -73,7 +78,10 @@ const App = (): JSX.Element => {
   }, [fetchPreview, loadedX, albumList]);
 
   return (
-    <div className="app">
+     <div className="app">
+      {isLoading ? 
+      <h1>Loading ...</h1>
+      : 
       <HashRouter>
         <Routes>
           <Route
@@ -83,7 +91,7 @@ const App = (): JSX.Element => {
           <Route path="/album/:albumName" element={<AlbumPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
-      </HashRouter>
+      </HashRouter>}
     </div>
   );
 };
