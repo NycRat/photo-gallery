@@ -12,7 +12,7 @@ const AlbumPage = (): JSX.Element => {
   const [loadIndex, setLoadIndex] = useState<number>(0);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(-1);
 
-  const { albumName } = useParams();
+  const { galleryName, albumName } = useParams();
 
   const navigate = useNavigate();
 
@@ -95,7 +95,7 @@ const AlbumPage = (): JSX.Element => {
           <button
             className="back-button"
             onClick={() => {
-              navigate("/");
+              navigate(`/gallery/${galleryName}`);
             }}
           >
             {"Gallery"}
