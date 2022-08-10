@@ -1,4 +1,5 @@
-use mongodb_connection::{MongoConnection, is_valid_gallery};
+use mongodb_connection::{is_valid_gallery, MongoConnection};
+use rand::Rng;
 use rocket::State;
 
 #[macro_use]
@@ -39,25 +40,45 @@ async fn get_album_list(gallery: &str, mongodb_connection: &State<MongoConnectio
 async fn get_image(
     gallery: &str,
     album: &str,
-    index: i32,
+    index: u32,
     size: &str,
     mongodb_connection: &State<MongoConnection>,
 ) -> String {
     if !is_valid_gallery(gallery) {
         return "".to_owned();
     }
-    match mongodb_connection.get_image_data(gallery, album, index, size).await {
+    match mongodb_connection
+        .get_image_data(gallery, album, index, size)
+        .await
+    {
         Ok(img_data) => return img_data,
         Err(e) => return e,
     }
 }
 
 #[get("/album_length?<gallery>&<album>")]
-async fn get_album_length(gallery: &str, album: &str, mongodb_connection: &State<MongoConnection>) -> String {
+async fn get_album_length(
+    gallery: &str,
+    album: &str,
+    mongodb_connection: &State<MongoConnection>,
+) -> String {
     if !is_valid_gallery(gallery) {
         return "".to_owned();
     }
-    mongodb_connection.get_album_length(gallery, album).await
+    mongodb_connection.get_album_length(gallery, album).await.to_string()
+}
+
+#[get("/image_random?<gallery>&<size>")]
+async fn get_random_gallery_image(
+    gallery: &str,
+    size: &str,
+    mongodb_connection: &State<MongoConnection>,
+) -> String {
+    let album_list = mongodb_connection.get_album_list(gallery).await;
+    let album = album_list.get(rand::thread_rng().gen_range(0..album_list.len())).unwrap();
+    let album_len = mongodb_connection.get_album_length(gallery, album).await;
+    let image_index = rand::thread_rng().gen_range(0..album_len);
+    mongodb_connection.get_image_data(gallery, album, image_index, size).await.unwrap()
 }
 
 #[launch]
@@ -81,6 +102,12 @@ async fn rocket() -> _ {
         .manage(mongo_connection)
         .mount(
             "/api/",
-            routes![get_gallery_list, get_album_list, get_album_length, get_image],
+            routes![
+                get_gallery_list,
+                get_album_list,
+                get_album_length,
+                get_image,
+                get_random_gallery_image
+            ],
         )
 }

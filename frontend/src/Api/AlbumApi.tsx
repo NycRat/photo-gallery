@@ -2,17 +2,17 @@ import axios from "axios";
 import ImageSize, { imageSizeToString } from "../Models/ImageSize";
 import ServerURL from "./ServerURL";
 
-export const getGalleryList = async (): Promise<string[]> => {
+export const apiGetGalleryList = async (): Promise<string[]> => {
   const res = await axios.get(`${ServerURL}/gallery_list`);
   return res.data.split("\n");
 };
 
-export const getAlbumList = async (gallery: string): Promise<string[]> => {
+export const apiGetAlbumList = async (gallery: string): Promise<string[]> => {
   const res = await axios.get(`${ServerURL}/album_list?gallery=${gallery}`);
   return res.data.split("\n");
 };
 
-export const getAlbumLength = async (
+export const apiGetAlbumLength = async (
   gallery: string,
   album: string
 ): Promise<number> => {
@@ -22,7 +22,7 @@ export const getAlbumLength = async (
   return parseInt(res.data);
 };
 
-export const getAlbumImage = async (
+export const apiGetAlbumImage = async (
   gallery: string,
   album: string,
   index: number,
@@ -36,11 +36,8 @@ export const getAlbumImage = async (
   return res.data;
 };
 
-// export const getAlbumImages = async (albumName: string): Promise<string[]> => {
-//   console.log(
-//     await axios.get(`${ServerURL}/album/name/` + albumName).then((res) => {
-//       return res;
-//     })
-//   );
-//   return [];
-// };
+export const apiGetGalleryPreview = async (galleryName: string): Promise<string> => {
+  const res = await axios.get(`${ServerURL}/image_random?gallery=${galleryName}&size=s`)
+  return res.data;
+}
+

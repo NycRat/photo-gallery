@@ -1,28 +1,37 @@
 import { useEffect, useState } from "react";
-import { getGalleryList } from "./Api/AlbumApi";
+import { apiGetGalleryList, apiGetGalleryPreview } from "./Api/AlbumApi";
 import GalleryPreview from "./Components/GalleryPreview";
 
 const MainPage = (): JSX.Element => {
-  const [galleries, setGalleries] = useState<string[]>([]);
+  const [galleryList, setGalleries] = useState<string[]>([]);
+  const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchGalleries = async () => {
-      setGalleries(await getGalleryList());
+      setGalleries(await apiGetGalleryList());
     };
 
     fetchGalleries();
   }, []);
 
   useEffect(() => {
-    console.log(galleries);
-  }, [galleries]);
+    if (galleryPreviews.length >= galleryList.length) {
+      return;
+    }
+    const fetchPreview = async () => {
+      let newPreviews = [...galleryPreviews];
+      newPreviews.push(await apiGetGalleryPreview(galleryList[galleryPreviews.length]));
+      setGalleryPreviews(newPreviews);
+    };
+    fetchPreview();
+  }, [galleryList, galleryPreviews]);
 
-  return galleries.length === 0 ? (
+  return galleryList.length === 0 ? (
     <h1>Loading ...</h1>
   ) : (
     <div>
-      {galleries.map((gallery, i) => (
-        <GalleryPreview key={i} name={gallery} />
+      {galleryList.map((gallery, i) => (
+        <GalleryPreview key={i} name={gallery} image={galleryPreviews[i]} />
       ))}
     </div>
   );

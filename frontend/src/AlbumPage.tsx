@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { getAlbumImage, getAlbumLength } from "./Api/AlbumApi";
+import { apiGetAlbumImage, apiGetAlbumLength } from "./Api/AlbumApi";
 import Image from "./Components/Image";
 import ImageSize from "./Models/ImageSize";
 
@@ -21,7 +21,7 @@ const AlbumPage = (): JSX.Element => {
       return;
     }
     const getAlbumLen = async () => {
-      setAlbumLength(await getAlbumLength(galleryName, albumName));
+      setAlbumLength(await apiGetAlbumLength(galleryName, albumName));
       setIsLoading(false);
     };
     getAlbumLen();
@@ -42,7 +42,7 @@ const AlbumPage = (): JSX.Element => {
         }
       }
 
-      let image = await getAlbumImage(galleryName, albumName, index, imageSize);
+      let image = await apiGetAlbumImage(galleryName, albumName, index, imageSize);
       if (index < images.length) {
         if (images[index].size >= imageSize) {
           if (incLoadIndex) {

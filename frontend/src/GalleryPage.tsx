@@ -2,7 +2,7 @@ import AlbumPreview from "./Components/AlbumPreview";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Route, Routes, useNavigate, useParams } from "react-router-dom";
 import AlbumPage from "./AlbumPage";
-import { getAlbumImage, getAlbumLength, getAlbumList } from "./Api/AlbumApi";
+import { apiGetAlbumImage, apiGetAlbumLength, apiGetAlbumList } from "./Api/AlbumApi";
 import { AlbumProps } from "./Models/AlbumProps";
 import ImageSize from "./Models/ImageSize";
 import NotFoundPage from "./NotFoundPage";
@@ -23,11 +23,11 @@ const GalleryPage = (): JSX.Element => {
       return;
     }
     const getAlbums = async () => {
-      const albumList = await getAlbumList(galleryName);
+      const albumList = await apiGetAlbumList(galleryName);
       setIsLoading(false);
       for (let i = 0; i < albumList.length; i++) {
         previewIndices.current.push(
-          Math.floor(Math.random() * (await getAlbumLength(galleryName, albumList[i])))
+          Math.floor(Math.random() * (await apiGetAlbumLength(galleryName, albumList[i])))
         );
       }
       setAlbumList(albumList);
@@ -55,7 +55,7 @@ const GalleryPage = (): JSX.Element => {
       const albumPreview = {
         name: albumList[index],
         images: [
-          await getAlbumImage(
+          await apiGetAlbumImage(
             galleryName,
             albumList[index],
             previewIndices.current[index],

@@ -140,6 +140,7 @@ dependencies = [
  "dotenv",
  "mini-redis",
  "mongodb",
+ "rand",
  "rocket",
  "rocket_cors",
  "serde",

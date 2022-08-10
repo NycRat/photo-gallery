@@ -4,7 +4,7 @@ extern crate dotenv;
 use dotenv::dotenv;
 
 pub struct MongoConnection {
-    pub client: mongodb::Client
+    pub client: mongodb::Client,
 }
 
 pub fn is_valid_gallery(gallery: &str) -> bool {
@@ -26,7 +26,8 @@ impl MongoConnection {
     }
 
     pub fn get_album(&self, gallery_name: &str, album_name: &str) -> mongodb::Collection<Document> {
-        self.get_gallery(gallery_name).collection::<Document>(album_name)
+        self.get_gallery(gallery_name)
+            .collection::<Document>(album_name)
     }
 
     pub async fn get_gallery_list(&self) -> Vec<String> {
@@ -45,7 +46,7 @@ impl MongoConnection {
         &self,
         gallery_name: &str,
         album_name: &str,
-        image_index: i32,
+        image_index: u32,
         image_size: &str,
     ) -> Result<String, String> {
         let album = self.get_album(gallery_name, album_name);
@@ -76,20 +77,23 @@ impl MongoConnection {
     }
 
     pub async fn get_album_list(&self, gallery_name: &str) -> Vec<String> {
-        self.get_gallery(gallery_name).list_collection_names(None).await.unwrap()
+        self.get_gallery(gallery_name)
+            .list_collection_names(None)
+            .await
+            .unwrap()
     }
 
-    pub async fn get_album_length(&self, gallery_name: &str, album_name: &str) -> String {
+    pub async fn get_album_length(&self, gallery_name: &str, album_name: &str) -> u32 {
         match self
             .get_album(gallery_name, album_name)
             .count_documents(doc!["size": "s"], None)
             .await
         {
             Ok(len) => {
-                return len.to_string();
+                return len as u32;
             }
-            Err(e) => {
-                return e.to_string();
+            Err(_) => {
+                return 0;
             }
         }
     }
