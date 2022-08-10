@@ -16,7 +16,7 @@ body,
   text-align: center;
 }
 
-.album {
+.gallery-preview {
   display: inline-block;
   margin: 20px;
   padding: min(20px, 1vw);
@@ -27,7 +27,18 @@ body,
   max-width: 80%;
 }
 
-.album:hover {
+.album-preview {
+  display: inline-block;
+  margin: 20px;
+  padding: min(20px, 1vw);
+  padding-top: 10px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  cursor: pointer;
+  max-width: 80%;
+}
+
+.album-preview:hover {
   border: 1px solid #000;
 }
 

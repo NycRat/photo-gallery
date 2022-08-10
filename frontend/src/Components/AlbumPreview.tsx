@@ -10,7 +10,7 @@ const AlbumPreview = (props: AlbumProps): JSX.Element => {
 
   return (
     <div
-      className="album"
+      className="album-preview"
       onClick={() => {
         navigate(`/gallery/${galleryName}/album/${props.name}`);
       }}

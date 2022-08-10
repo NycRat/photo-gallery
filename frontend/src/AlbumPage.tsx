@@ -17,19 +17,19 @@ const AlbumPage = (): JSX.Element => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!albumName) {
+    if (!albumName || !galleryName) {
       return;
     }
     const getAlbumLen = async () => {
-      setAlbumLength(await getAlbumLength(albumName));
+      setAlbumLength(await getAlbumLength(galleryName, albumName));
       setIsLoading(false);
     };
     getAlbumLen();
-  }, [albumName]);
+  }, [albumName, galleryName]);
 
   const fetchPhoto = useCallback(
     async (index: number, imageSize: ImageSize, incLoadIndex: boolean) => {
-      if (!albumName || albumLength === 0) {
+      if (!albumName || albumLength === 0 || !galleryName) {
         return;
       }
       if (incLoadIndex) {
@@ -42,7 +42,7 @@ const AlbumPage = (): JSX.Element => {
         }
       }
 
-      let image = await getAlbumImage(albumName, index, imageSize);
+      let image = await getAlbumImage(galleryName, albumName, index, imageSize);
       if (index < images.length) {
         if (images[index].size >= imageSize) {
           if (incLoadIndex) {

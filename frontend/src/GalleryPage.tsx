@@ -19,21 +19,27 @@ const GalleryPage = (): JSX.Element => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (!galleryName) {
+      return;
+    }
     const getAlbums = async () => {
-      const albumList = await getAlbumList();
+      const albumList = await getAlbumList(galleryName);
       setIsLoading(false);
       for (let i = 0; i < albumList.length; i++) {
         previewIndices.current.push(
-          Math.floor(Math.random() * (await getAlbumLength(albumList[i])))
+          Math.floor(Math.random() * (await getAlbumLength(galleryName, albumList[i])))
         );
       }
       setAlbumList(albumList);
     };
     getAlbums();
-  }, []);
+  }, [galleryName]);
 
   const fetchPreview = useCallback(
     async (imageSize: ImageSize) => {
+      if (!galleryName) {
+        return;
+      }
       let index = loadIndex.current;
       if (albumList.length === 0) {
         return;
@@ -50,6 +56,7 @@ const GalleryPage = (): JSX.Element => {
         name: albumList[index],
         images: [
           await getAlbumImage(
+            galleryName,
             albumList[index],
             previewIndices.current[index],
             imageSize
@@ -65,7 +72,7 @@ const GalleryPage = (): JSX.Element => {
       }
       loadIndex.current++;
     },
-    [albumList, albumPreviews, loadedX]
+    [albumList, albumPreviews, galleryName, loadedX]
   );
 
   useEffect(() => {
