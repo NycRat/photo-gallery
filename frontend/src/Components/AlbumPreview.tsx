@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { AlbumProps } from "../Models/AlbumProps";
 import ImageSize from "../Models/ImageSize";
 import Image from "./Image";
@@ -6,11 +6,13 @@ import Image from "./Image";
 const AlbumPreview = (props: AlbumProps): JSX.Element => {
   const navigate = useNavigate();
 
+  const {galleryName} = useParams();
+
   return (
     <div
-      className="album"
+      className="album-preview"
       onClick={() => {
-        navigate("/album/" + props.name);
+        navigate(`/gallery/${galleryName}/album/${props.name}`);
       }}
     >
       <h1>{props.name}</h1>
