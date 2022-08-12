@@ -1,11 +1,10 @@
-import AlbumPreview from "./Components/AlbumPreview";
+import AlbumPreview from "../Components/AlbumPreview";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Route, Routes, useNavigate, useParams } from "react-router-dom";
 import AlbumPage from "./AlbumPage";
-import { apiGetAlbumImage, apiGetAlbumLength, apiGetAlbumList } from "./Api/AlbumApi";
-import { AlbumProps } from "./Models/AlbumProps";
-import ImageSize from "./Models/ImageSize";
-import NotFoundPage from "./NotFoundPage";
+import { apiGetAlbumImage, apiGetAlbumLength, apiGetAlbumList } from "../Api/AlbumApi";
+import { AlbumProps } from "../Models/AlbumProps";
+import ImageSize from "../Models/ImageSize";
 
 const GalleryPage = (): JSX.Element => {
   const [albumPreviews, setAlbumPreviews] = useState<AlbumProps[]>([]);
@@ -109,7 +108,7 @@ const GalleryPage = (): JSX.Element => {
         }
       />
       <Route path="/album/:albumName" element={<AlbumPage />} />
-      <Route path="*" element={<NotFoundPage />} />
+      <Route path="*" element={<div>404 Page Not Found</div>} />
     </Routes>
   );
 };

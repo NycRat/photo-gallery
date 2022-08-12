@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { apiGetGalleryList, apiGetGalleryPreview } from "./Api/AlbumApi";
-import GalleryPreview from "./Components/GalleryPreview";
+import { apiGetGalleryList, apiGetGalleryPreview } from "../Api/AlbumApi";
+import GalleryPreview from "../Components/GalleryPreview";
 
 const MainPage = (): JSX.Element => {
   const [galleryList, setGalleries] = useState<string[]>([]);

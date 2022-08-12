@@ -1,8 +1,7 @@
 import { HashRouter, Route, Routes } from "react-router-dom";
-import GalleryPage from "./GalleryPage";
-import MainPage from "./MainPage";
-import Navbar from "./Navbar";
-import NotFoundPage from "./NotFoundPage";
+import GalleryPage from "./Pages/GalleryPage";
+import MainPage from "./Pages/MainPage";
+import Navbar from "./Components/Navbar";
 
 const App = (): JSX.Element => {
 
@@ -19,7 +18,7 @@ const App = (): JSX.Element => {
             path="/gallery/:galleryName/*"
             element={<GalleryPage />}
           />
-          <Route path="*" element={<NotFoundPage />} />
+          <Route path="*" element={<div>404 Page Not Found</div>} />
         </Routes>
       </HashRouter>
     </div>

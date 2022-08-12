@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { apiGetAlbumImage, apiGetAlbumLength } from "./Api/AlbumApi";
-import Image from "./Components/Image";
-import ImageSize from "./Models/ImageSize";
+import { apiGetAlbumImage, apiGetAlbumLength } from "../Api/AlbumApi";
+import Image from "../Components/Image";
+import ImageSize from "../Models/ImageSize";
 
 const AlbumPage = (): JSX.Element => {
   const [images, setImages] = useState<{ data: string; size: ImageSize }[]>([]);
