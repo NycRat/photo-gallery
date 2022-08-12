@@ -70,15 +70,18 @@ body,
   border-radius: 10px;
   cursor: pointer;
   max-width: 90%;
-  box-shadow: 6px 6px 10px 2px #000000cc;
-
+  box-shadow: 4px 6px 8px 2px #000000cc;
   .s {
     width: min(80vw, 1000px);
+    box-shadow: none;
+    &:hover {
+      box-shadow: none;
+    }
   }
-}
-
-.gallery-preview:hover {
-  border: 1px solid #000;
+  transition: box-shadow 0.2s;
+  &:hover {
+    box-shadow: 8px 12px 10px 3px #000000cc;
+  }
 }
 
 .album-preview {
@@ -90,11 +93,11 @@ body,
   border-radius: 10px;
   cursor: pointer;
   max-width: 80%;
-  box-shadow: 4px 4px 6px 1px #000000cc;
-}
-
-.album-preview:hover {
-  border: 1px solid #000;
+  box-shadow: 4px 6px 6px 1px #000000cc;
+  transition: box-shadow 0.2s;
+  &:hover {
+    box-shadow: 6px 10px 10px 2px #000000cc;
+  }
 }
 
 .album-page {
@@ -142,6 +145,10 @@ body,
 .s {
   width: min(75vw, 500px);
   box-shadow: 4px 4px 6px 1px #000000cc;
+  transition: box-shadow 0.2s;
+  &:hover {
+    box-shadow: 6px 8px 8px 2px #000000cc;
+  }
 }
 
 .m {
@@ -157,4 +164,30 @@ body,
   right: 0;
   margin: auto;
   cursor: default;
+}
+
+.submit-page {
+  height: calc(100% - 51px);
+  width: 100%;
+  :not(:last-child) {
+    border-bottom: 1px solid #000;
+  }
+}
+
+.submit-option {
+  display: inline-block;
+  width: 100%;
+  height: calc(100% / 3 - 2px / 3);
+  margin: 0;
+  padding: 0;
+  display: flex;
+  h1 {
+    font-size: 80px;
+    margin: auto;
+  }
+  cursor: pointer;
+  transition: background-color 0.5s;
+  &:hover {
+    background-color: #c8c8c8;
+  }
 }
