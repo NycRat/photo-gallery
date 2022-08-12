@@ -98,7 +98,7 @@ const AlbumPage = (): JSX.Element => {
               navigate(`/gallery/${galleryName}`);
             }}
           >
-            {"Gallery"}
+            Back
           </button>
         )
       }
@@ -107,6 +107,7 @@ const AlbumPage = (): JSX.Element => {
       ) : albumLength !== 0 ? (
         selectedImageIndex >= 0 && selectedImageIndex < images.length ? (
           <div>
+            <div className="nav-cover" />
             <button
               className="back-button"
               onClick={() => setSelectedImageIndex(-1)}
