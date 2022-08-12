@@ -18,10 +18,11 @@ body,
 }
 
 .navbar {
-  padding: 10px;
+  padding: 10px 0px;
   background-color: #e5e5e5;
   border-bottom: 1px solid #b8b5ba;
   height: 30px;
+  width: 100%;
   .nav-dropdown-icon {
     display: none;
     width: 60px;
@@ -31,7 +32,7 @@ body,
     color: black;
     text-decoration: none;
     font-size: 24px;
-    margin: 0 10px;
+    margin: 0px 10px;
   }
   @media only screen and (max-width: 600px) {
     .dropdown {
@@ -41,12 +42,15 @@ body,
       display: inline-block;
       position: absolute;
       background-color: #f9f9f9;
-      box-shadow: 0px 8px 16px 0px #000000A3;
+      box-shadow: 0px 4px 10px 2px #000000a3;
       min-width: 160px;
       padding: 12px 16px;
       z-index: 1;
       top: 52px;
       right: 1px;
+      a {
+        font-size: 20px;
+      }
     }
     .nav-dropdown-icon {
       display: block;
@@ -66,6 +70,7 @@ body,
   border-radius: 10px;
   cursor: pointer;
   max-width: 90%;
+  box-shadow: 6px 6px 10px 2px #000000cc;
 
   .s {
     width: min(80vw, 1000px);
@@ -85,6 +90,7 @@ body,
   border-radius: 10px;
   cursor: pointer;
   max-width: 80%;
+  box-shadow: 4px 4px 6px 1px #000000cc;
 }
 
 .album-preview:hover {
@@ -135,6 +141,7 @@ body,
 
 .s {
   width: min(75vw, 500px);
+  box-shadow: 4px 4px 6px 1px #000000cc;
 }
 
 .m {
