@@ -1,7 +1,6 @@
 use mongodb_connection::{is_valid_gallery, MongoConnection};
 use rand::Rng;
 use rocket::State;
-
 #[macro_use]
 extern crate rocket;
 
@@ -65,7 +64,10 @@ async fn get_album_length(
     if !is_valid_gallery(gallery) {
         return "".to_owned();
     }
-    mongodb_connection.get_album_length(gallery, album).await.to_string()
+    mongodb_connection
+        .get_album_length(gallery, album)
+        .await
+        .to_string()
 }
 
 #[get("/image_random?<gallery>&<size>")]
@@ -75,10 +77,15 @@ async fn get_random_gallery_image(
     mongodb_connection: &State<MongoConnection>,
 ) -> String {
     let album_list = mongodb_connection.get_album_list(gallery).await;
-    let album = album_list.get(rand::thread_rng().gen_range(0..album_list.len())).unwrap();
+    let album = album_list
+        .get(rand::thread_rng().gen_range(0..album_list.len()))
+        .unwrap();
     let album_len = mongodb_connection.get_album_length(gallery, album).await;
     let image_index = rand::thread_rng().gen_range(0..album_len);
-    mongodb_connection.get_image_data(gallery, album, image_index, size).await.unwrap()
+    mongodb_connection
+        .get_image_data(gallery, album, image_index, size)
+        .await
+        .unwrap()
 }
 
 #[launch]
@@ -107,7 +114,7 @@ async fn rocket() -> _ {
                 get_album_list,
                 get_album_length,
                 get_image,
-                get_random_gallery_image
+                get_random_gallery_image,
             ],
         )
 }
