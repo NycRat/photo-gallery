@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Route, Routes, useNavigate } from "react-router-dom";
-import { apiPostPhotoSubmission } from "../Api/AlbumApi";
+import { apiPostPhotoSubmission } from "../Api/ApiFunctions";
 import Image from "../Components/Image";
 import ImageSize from "../Models/ImageSize";
 

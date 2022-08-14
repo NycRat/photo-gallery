@@ -22,7 +22,7 @@ export const apiGetAlbumLength = async (
   return parseInt(res.data);
 };
 
-export const apiGetAlbumImage = async (
+export const apiGetImage = async (
   gallery: string,
   album: string,
   index: number,

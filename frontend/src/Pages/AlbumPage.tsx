@@ -1,16 +1,17 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { apiGetAlbumImage, apiGetAlbumLength } from "../Api/AlbumApi";
+import { apiGetImage, apiGetAlbumLength } from "../Api/ApiFunctions";
 import Image from "../Components/Image";
 import ImageSize from "../Models/ImageSize";
 
 const AlbumPage = (): JSX.Element => {
-  const [images, setImages] = useState<{ data: string; size: ImageSize }[]>([]);
+  const [images, setImages] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [albumLength, setAlbumLength] = useState<number>(0);
   const [loadedX, setLoadedX] = useState<boolean>(false);
   const [loadIndex, setLoadIndex] = useState<number>(0);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(-1);
+  const loadedMsList = useRef(new Set());
 
   const { galleryName, albumName } = useParams();
 
@@ -20,67 +21,80 @@ const AlbumPage = (): JSX.Element => {
     if (!albumName || !galleryName) {
       return;
     }
+    setImages([]);
+    setIsLoading(true);
+    setAlbumLength(0);
+    setLoadedX(false);
+    setLoadIndex(0);
+    setSelectedImageIndex(-1);
+    loadedMsList.current = new Set();
+
     const getAlbumLen = async () => {
-      setAlbumLength(await apiGetAlbumLength(galleryName, albumName));
+      let len = await apiGetAlbumLength(galleryName, albumName);
+      setAlbumLength(len);
       setIsLoading(false);
     };
     getAlbumLen();
   }, [albumName, galleryName]);
 
-  const fetchPhoto = useCallback(
-    async (index: number, imageSize: ImageSize, incLoadIndex: boolean) => {
-      if (!albumName || albumLength === 0 || !galleryName) {
+  useEffect(() => {
+    if (albumLength === 0 || !galleryName || !albumName) {
+      return;
+    }
+    const fetchPhoto = async () => {
+      if (loadIndex >= albumLength) {
+        if (!loadedX) {
+          setLoadIndex(0);
+          setLoadedX(true);
+        }
         return;
       }
-      if (incLoadIndex) {
-        if (loadIndex >= albumLength) {
-          if (!loadedX) {
-            setLoadedX(true);
-            setLoadIndex(0);
-          }
-          return;
-        }
-      }
+      const imageSize = !loadedX ? ImageSize.x : ImageSize.s;
 
-      let image = await apiGetAlbumImage(galleryName, albumName, index, imageSize);
-      if (index < images.length) {
-        if (images[index].size >= imageSize) {
-          if (incLoadIndex) {
-            setLoadIndex(loadIndex + 1);
-          }
-          return;
-        }
+      const image = await apiGetImage(
+        galleryName,
+        albumName,
+        loadIndex,
+        imageSize
+      );
+      if (loadIndex < albumLength) {
         let newImages = [...images];
-        newImages[index] = { data: image, size: imageSize };
+        newImages[loadIndex] = image;
         setImages(newImages);
       } else {
-        setImages([...images, { data: image, size: imageSize }]);
+        setImages([...images, image]);
       }
+      setLoadIndex(loadIndex + 1);
+    };
 
-      if (incLoadIndex) {
-        setLoadIndex(loadIndex + 1);
-      }
-    },
-    [albumLength, albumName, images, loadIndex, loadedX]
-  );
+    fetchPhoto();
+  }, [albumLength, albumName, galleryName, images, loadIndex, loadedX]);
 
   useEffect(() => {
-    if (!loadedX) {
-      fetchPhoto(loadIndex, ImageSize.x, true);
+    if (albumLength === 0 || !galleryName || !albumName) {
+      return;
     }
-  }, [fetchPhoto, images.length, loadIndex, loadedX, selectedImageIndex]);
-
-  useEffect(() => {
-    if (loadedX) {
-      fetchPhoto(loadIndex, ImageSize.s, true);
-    }
-  }, [fetchPhoto, images.length, loadIndex, loadedX, selectedImageIndex]);
-
-  useEffect(() => {
     if (selectedImageIndex >= 0 && selectedImageIndex < images.length) {
-      fetchPhoto(selectedImageIndex, ImageSize.m, false);
+      if (loadedMsList.current.has(selectedImageIndex)) {
+        return;
+      } else {
+        loadedMsList.current.add(selectedImageIndex);
+      }
+      const fetchPhoto = async () => {
+        const image = await apiGetImage(
+          galleryName,
+          albumName,
+          selectedImageIndex,
+          ImageSize.m
+        );
+        let newImages = [...images];
+        newImages[selectedImageIndex] = image;
+        setImages(newImages);
+      };
+
+      fetchPhoto();
     }
-  }, [fetchPhoto, images.length, selectedImageIndex]);
+  }, [albumLength, albumName, galleryName, images, loadIndex, loadedMsList, selectedImageIndex]);
 
   return (
     <div className="album-page">
@@ -116,7 +130,7 @@ const AlbumPage = (): JSX.Element => {
             </button>
             <Image
               key={selectedImageIndex}
-              src={images[selectedImageIndex].data}
+              src={images[selectedImageIndex]}
               size={ImageSize.m}
             />
           </div>
@@ -126,7 +140,7 @@ const AlbumPage = (): JSX.Element => {
             {images.map((photo, i) => (
               <Image
                 key={i}
-                src={photo.data}
+                src={photo}
                 size={ImageSize.s}
                 onClick={() => {
                   if (loadedX && loadIndex >= albumLength) {

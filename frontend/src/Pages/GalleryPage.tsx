@@ -1,30 +1,37 @@
 import AlbumPreview from "../Components/AlbumPreview";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Route, Routes, useNavigate, useParams } from "react-router-dom";
 import AlbumPage from "./AlbumPage";
 import {
-  apiGetAlbumImage,
+  apiGetImage,
   apiGetAlbumLength,
   apiGetAlbumList,
-} from "../Api/AlbumApi";
+} from "../Api/ApiFunctions";
 import { AlbumProps } from "../Models/AlbumProps";
 import ImageSize from "../Models/ImageSize";
 
 const GalleryPage = (): JSX.Element => {
   const [albumPreviews, setAlbumPreviews] = useState<AlbumProps[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [albumList, setAlbumList] = useState<string[]>([]);
   const [loadedX, setLoadedX] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
   const previewIndices = useRef<number[]>([]);
   const loadIndex = useRef<number>(0);
 
-  const { galleryName } = useParams(); // TODO - fix bug where updating url doesnt update galleryName
+  const { galleryName } = useParams();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!galleryName) {
       return;
     }
+    setAlbumPreviews([]);
+    setIsLoading(true);
+    setAlbumList([]);
+    setLoadedX(false);
+    previewIndices.current = [];
+    loadIndex.current = 0;
+
     const getAlbums = async () => {
       const albumList = await apiGetAlbumList(galleryName);
       setIsLoading(false);
@@ -40,27 +47,26 @@ const GalleryPage = (): JSX.Element => {
     getAlbums();
   }, [galleryName]);
 
-  const fetchPreview = useCallback(
-    async (imageSize: ImageSize) => {
-      if (!galleryName) {
-        return;
-      }
+  useEffect(() => {
+    if (!galleryName || albumList.length === 0) {
+      return;
+    }
+
+    const fetchPreview = async () => {
       let index = loadIndex.current;
-      if (albumList.length === 0) {
-        return;
-      }
       if (index >= albumList.length) {
         if (!loadedX) {
           setLoadedX(true);
           loadIndex.current = 0;
-          return;
         }
         return;
       }
+      const imageSize = !loadedX ? ImageSize.x : ImageSize.s;
+
       const albumPreview = {
         name: albumList[index],
         images: [
-          await apiGetAlbumImage(
+          await apiGetImage(
             galleryName,
             albumList[index],
             previewIndices.current[index],
@@ -76,21 +82,11 @@ const GalleryPage = (): JSX.Element => {
         setAlbumPreviews([...albumPreviews, albumPreview]);
       }
       loadIndex.current++;
-    },
-    [albumList, albumPreviews, galleryName, loadedX]
-  );
+    };
 
-  useEffect(() => {
-    if (!loadedX) {
-      fetchPreview(ImageSize.x);
-    }
-  }, [fetchPreview, loadedX, albumList]);
+    fetchPreview();
+  }, [loadedX, albumList, galleryName, albumPreviews]);
 
-  useEffect(() => {
-    if (loadedX) {
-      fetchPreview(ImageSize.s);
-    }
-  }, [fetchPreview, loadedX, albumList]);
   return (
     <Routes>
       <Route

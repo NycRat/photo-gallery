@@ -5,20 +5,13 @@ import Navbar from "./Components/Navbar";
 import SubmitPage from "./Pages/SubmitPage";
 
 const App = (): JSX.Element => {
-
   return (
-     <div className="app">
+    <div className="app">
       <Navbar />
       <HashRouter>
         <Routes>
-          <Route
-            path="/"
-            element={<MainPage />}
-          />
-          <Route
-            path="/gallery/:galleryName/*"
-            element={<GalleryPage />}
-          />
+          <Route path="/" element={<MainPage />} />
+          <Route path="/gallery/:galleryName/*" element={<GalleryPage />} />
           <Route path="/submit/*" element={<SubmitPage />} />
           <Route path="*" element={<div>404 Page Not Found</div>} />
         </Routes>

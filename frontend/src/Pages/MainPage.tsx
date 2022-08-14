@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { apiGetGalleryList, apiGetGalleryPreview } from "../Api/AlbumApi";
+import { apiGetGalleryList, apiGetGalleryPreview } from "../Api/ApiFunctions";
 import GalleryPreview from "../Components/GalleryPreview";
 
 const MainPage = (): JSX.Element => {
@@ -33,9 +33,8 @@ const MainPage = (): JSX.Element => {
   ) : (
     <div>
       {galleryList.map((gallery, i) => (
-        <div>
-          <GalleryPreview key={i} name={gallery} image={galleryPreviews[i]} />
-          <br />
+        <div key={i}>
+          <GalleryPreview name={gallery} image={galleryPreviews[i]} />
         </div>
       ))}
     </div>

@@ -39,12 +39,12 @@ body,
     color: black;
     text-decoration: none;
     font-size: 24px;
-    margin: 0px 10px;
+    margin: 0px 18px;
     &:hover {
       font-weight: bold;
     }
   }
-  @media only screen and (max-width: 600px) {
+  @media only screen and (max-width: 800px) {
     .dropdown {
       display: none;
     }
@@ -60,7 +60,12 @@ body,
       right: 1px;
       a {
         font-size: 20px;
+        &::after {
+          content: "\a";
+          white-space: pre;
+        }
       }
+
     }
     .nav-dropdown-icon {
       display: block;
@@ -115,7 +120,7 @@ body,
     padding: 20px;
     margin: 0;
   }
-  min-height: 100vh;
+  // min-height: 100vh;
   display: flex;
   justify-content: center;
 }
