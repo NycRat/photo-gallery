@@ -4,7 +4,7 @@ extern crate dotenv;
 use dotenv::dotenv;
 
 pub struct MongoConnection {
-    pub database: mongodb::Database,
+    pub client: mongodb::Client,
 }
 
 impl MongoConnection {
@@ -15,31 +15,34 @@ impl MongoConnection {
         let client_options = mongodb::options::ClientOptions::parse(uri).await.unwrap();
         let client = mongodb::Client::with_options(client_options).unwrap();
 
-        let database = client.database("albumDB");
 
-        MongoConnection { database }
+        MongoConnection { client }
     }
 
-    pub fn get_album(&self, name: &String) -> mongodb::Collection<Document> {
-        self.database.collection::<Document>(name.as_str())
+    pub fn get_gallery(&self, gallery_name: &String) -> mongodb::Database {
+        self.client.database(&gallery_name)
     }
 
-    pub async fn get_album_len(&self, name: &String) -> i32 {
-        self.get_album(name)
+    pub fn get_album(&self, gallery_name: &String, album_name: &String) -> mongodb::Collection<Document> {
+        self.get_gallery(&gallery_name).collection::<Document>(album_name.as_str())
+    }
+
+    pub async fn get_album_len(&self, gallery_name: &String, album_name: &String) -> i32 {
+        self.get_album(&gallery_name, &album_name)
             .count_documents(doc! {"size": "s"}, None)
             .await
             .unwrap() as i32
     }
 
-    pub async fn create_album(&self, album_name: &String) {
-        match self.database.create_collection(&album_name, None).await {
+    pub async fn create_album(&self, gallery_name: &String, album_name: &String) {
+        match self.get_gallery(&gallery_name).create_collection(&album_name, None).await {
             Ok(_) => println!("Created album: {}", album_name),
             Err(e) => println!("{}", e),
         }
     }
 
-    pub async fn delete_album(&self, album_name: &String) {
-        match self.get_album(album_name).drop(None).await {
+    pub async fn delete_album(&self, gallery_name: &String, album_name: &String) {
+        match self.get_album(&gallery_name, &album_name).drop(None).await {
             Ok(_) => println!("Deleted album: {}", album_name),
             Err(e) => println!("{}", e),
         }
@@ -47,6 +50,7 @@ impl MongoConnection {
 
     pub async fn insert_image(
         &self,
+        gallery_name: &String,
         album_name: &String,
         image_data: &Vec<u8>,
         image_size: &String,
@@ -59,7 +63,7 @@ impl MongoConnection {
             }
         }
 
-        let album = self.get_album(&album_name);
+        let album = self.get_album(&gallery_name, &album_name);
 
         use mongodb::bson::spec::BinarySubtype;
         use mongodb::bson::Binary;

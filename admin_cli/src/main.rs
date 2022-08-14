@@ -22,8 +22,16 @@ async fn parse(input_args: &Vec<String>) -> Result<(), args::ArgsError> {
         Some("help".to_owned()),
     );
     args.option(
-        "n",
-        "name",
+        "G",
+        "gallery",
+        "The name of gallery",
+        "GALLERY_NAME",
+        getopts::Occur::Optional,
+        None,
+    );
+    args.option(
+        "A",
+        "album",
         "The name of album",
         "ALBUM_NAME",
         getopts::Occur::Optional,
@@ -64,7 +72,7 @@ async fn parse(input_args: &Vec<String>) -> Result<(), args::ArgsError> {
 
     match action.as_str() {
         "scale_images" => {
-            let files_dir = args.value_of::<String>("name").unwrap();
+            let files_dir = args.value_of::<String>("album").unwrap();
             let mut image_files: Vec<_> = std::fs::read_dir(&files_dir)
                 .unwrap()
                 .map(|f| f.unwrap())
@@ -94,25 +102,9 @@ async fn parse(input_args: &Vec<String>) -> Result<(), args::ArgsError> {
 
             }
         }
-        "insert_images" => {
-            // let album_name = args.value_of::<String>("name").unwrap();
-            // let image_size = args.value_of::<String>("size").unwrap();
-            // let arg_files = args.value_of::<String>("files").unwrap();
-
-            // let input_files = arg_files.split(" ");
-
-            // let db_connection = MongoConnection::init().await;
-
-            // for file in input_files {
-            //     let image_data = file_util::get_data_from_file(file);
-            //     db_connection
-            //         .insert_image(&album_name, &image_data, &image_size)
-            //         .await;
-            // }
-
-        }
         "insert_album" => {
-            let album_dir = args.value_of::<String>("name").unwrap();
+            let gallery = args.value_of::<String>("gallery").unwrap();
+            let album_dir = args.value_of::<String>("album").unwrap();
             let mut image_files: Vec<_> = std::fs::read_dir(&album_dir)
                 .unwrap()
                 .map(|f| f.unwrap())
@@ -136,29 +128,31 @@ async fn parse(input_args: &Vec<String>) -> Result<(), args::ArgsError> {
                 let image_data = file_util::get_data_from_file(image_file);
 
                 db_connection
-                    .insert_image(&album_dir, &image_data, &image_size)
+                    .insert_image(&gallery, &album_dir, &image_data, &image_size)
                     .await;
             }
         }
         "create_album" => {
-            let album_name = args.value_of::<String>("name").unwrap();
+            let gallery_name = args.value_of::<String>("gallery").unwrap();
+            let album_name = args.value_of::<String>("album").unwrap();
             let db_connection = MongoConnection::init().await;
-            db_connection.create_album(&album_name).await;
+            db_connection.create_album(&gallery_name, &album_name).await;
         }
-        "delete_image" => {
+        /* "delete_image" => {
             let album_name = args.value_of::<String>("name").unwrap();
             let image_index = args.value_of::<i32>("index").unwrap();
             let mut line = String::new();
             std::io::stdin().read_line(&mut line).unwrap();
             let db_connection = MongoConnection::init().await;
-        }
+        } */
         "delete_album" => {
-            let album_name = args.value_of::<String>("name").unwrap();
+            let gallery_name = args.value_of::<String>("gallery").unwrap();
+            let album_name = args.value_of::<String>("album").unwrap();
             let db_connection = MongoConnection::init().await;
             println!(
                 "Delete \"{}\" with {} images?",
                 album_name,
-                db_connection.get_album_len(&album_name).await
+                db_connection.get_album_len(&gallery_name, &album_name).await
             );
             print!("Retype album name to confirm: ");
             std::io::Write::flush(&mut std::io::stdout()).unwrap();
@@ -166,7 +160,7 @@ async fn parse(input_args: &Vec<String>) -> Result<(), args::ArgsError> {
             let mut y_n = String::new();
             std::io::stdin().read_line(&mut y_n).unwrap();
             if y_n.trim_end() == album_name {
-                db_connection.delete_album(&album_name).await;
+                db_connection.delete_album(&gallery_name, &album_name).await;
             } else {
                 println!("Album names do not match");
             }

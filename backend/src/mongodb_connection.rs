@@ -8,7 +8,7 @@ pub struct MongoConnection {
 }
 
 pub fn is_valid_gallery(gallery: &str) -> bool {
-    return gallery != "admin" && gallery != "local" && gallery != "config";
+    return gallery != "admin" && gallery != "local" && gallery != "config" && gallery != "imageDB" && gallery != "albumDB";
 }
 
 impl MongoConnection {
