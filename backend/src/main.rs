@@ -1,4 +1,4 @@
-use mongodb_connection::{is_valid_gallery, MongoConnection};
+use mongodb_connection::{is_valid_gallery, MongoConnection, is_public_gallery};
 use rand::Rng;
 use rocket::State;
 
@@ -44,7 +44,7 @@ async fn get_image(
     size: &str,
     mongodb_connection: &State<MongoConnection>,
 ) -> String {
-    if !is_valid_gallery(gallery) {
+    if !is_public_gallery(gallery) {
         return "".to_owned();
     }
     match mongodb_connection
@@ -62,8 +62,8 @@ async fn get_album_length(
     album: &str,
     mongodb_connection: &State<MongoConnection>,
 ) -> String {
-    if !is_valid_gallery(gallery) {
-        return "".to_owned();
+    if !is_public_gallery(gallery) {
+        return "0".to_owned();
     }
     mongodb_connection.get_album_length(gallery, album).await.to_string()
 }
