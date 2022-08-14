@@ -19,7 +19,7 @@ const App = (): JSX.Element => {
             path="/gallery/:galleryName/*"
             element={<GalleryPage />}
           />
-          <Route path="/submit" element={<SubmitPage />} />
+          <Route path="/submit/*" element={<SubmitPage />} />
           <Route path="*" element={<div>404 Page Not Found</div>} />
         </Routes>
       </HashRouter>

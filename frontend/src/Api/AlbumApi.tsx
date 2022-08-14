@@ -41,3 +41,6 @@ export const apiGetGalleryPreview = async (galleryName: string): Promise<string>
   return res.data;
 }
 
+export const apiPostPhotoSubmission = async (imageData: string) => {
+};
+

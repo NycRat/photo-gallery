@@ -2,7 +2,11 @@ import AlbumPreview from "../Components/AlbumPreview";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Route, Routes, useNavigate, useParams } from "react-router-dom";
 import AlbumPage from "./AlbumPage";
-import { apiGetAlbumImage, apiGetAlbumLength, apiGetAlbumList } from "../Api/AlbumApi";
+import {
+  apiGetAlbumImage,
+  apiGetAlbumLength,
+  apiGetAlbumList,
+} from "../Api/AlbumApi";
 import { AlbumProps } from "../Models/AlbumProps";
 import ImageSize from "../Models/ImageSize";
 
@@ -14,7 +18,7 @@ const GalleryPage = (): JSX.Element => {
   const previewIndices = useRef<number[]>([]);
   const loadIndex = useRef<number>(0);
 
-  const { galleryName } = useParams();
+  const { galleryName } = useParams(); // TODO - fix bug where updating url doesnt update galleryName
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,7 +30,9 @@ const GalleryPage = (): JSX.Element => {
       setIsLoading(false);
       for (let i = 0; i < albumList.length; i++) {
         previewIndices.current.push(
-          Math.floor(Math.random() * (await apiGetAlbumLength(galleryName, albumList[i])))
+          Math.floor(
+            Math.random() * (await apiGetAlbumLength(galleryName, albumList[i]))
+          )
         );
       }
       setAlbumList(albumList);
