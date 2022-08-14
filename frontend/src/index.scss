@@ -17,6 +17,13 @@ body,
   user-select: none;
 }
 
+.title {
+  font-size: 40px;
+  @media only screen and (max-width: 600px) {
+    font-size: calc(28px + 2vw);
+  }
+}
+
 .navbar {
   padding: 10px 0px;
   background-color: #e5e5e5;
@@ -33,6 +40,9 @@ body,
     text-decoration: none;
     font-size: 24px;
     margin: 0px 10px;
+    &:hover {
+      font-weight: bold;
+    }
   }
   @media only screen and (max-width: 600px) {
     .dropdown {

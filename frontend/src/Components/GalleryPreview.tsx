@@ -13,7 +13,7 @@ const GalleryPreview = (props: {
       className="gallery-preview"
       onClick={() => navigate(`/gallery/${props.name}`)}
     >
-      <h1>{props.name}</h1>
+      <h1 className="title">{props.name}</h1>
 
       {props.image !== undefined && (
         <Image size={ImageSize.s} src={props.image} />

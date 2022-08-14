@@ -104,7 +104,7 @@ const GalleryPage = (): JSX.Element => {
               <h1>Loading ...</h1>
             ) : (
               <div>
-                <h1 className="app-title">{galleryName}</h1>
+                <h1 className="title">{galleryName}</h1>
                 {albumPreviews.map((album, i) => (
                   <AlbumPreview key={i} {...album} />
                 ))}

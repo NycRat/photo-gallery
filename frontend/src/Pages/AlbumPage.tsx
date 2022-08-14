@@ -122,7 +122,7 @@ const AlbumPage = (): JSX.Element => {
           </div>
         ) : (
           <div>
-            <h1>{albumName}</h1>
+            <h1 className="title">{albumName}</h1>
             {images.map((photo, i) => (
               <Image
                 key={i}

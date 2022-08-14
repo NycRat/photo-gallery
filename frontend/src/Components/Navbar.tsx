@@ -6,9 +6,9 @@ const Navbar = (): JSX.Element => {
 
   return (
     <nav className="navbar">
-      <a href="/photo-gallery/#/">Photo Gallery</a>
+      <a href="/photo-gallery/#/" onClick={() => setDropdown(false)}>Photo Gallery</a>
       <span className={dropdown ? "dropdown active" : "dropdown"}>
-        <a href="/photo-gallery/#/submit">Submit Photos</a>
+        <a href="/photo-gallery/#/submit" onClick={() => setDropdown(false)}>Submit Photos</a>
       </span>
       <button className="nav-dropdown-icon" onClick={() => setDropdown(!dropdown)}>
         ☰
