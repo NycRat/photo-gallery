@@ -2,6 +2,8 @@ import axios from "axios";
 import ImageSize, { imageSizeToString } from "../Models/ImageSize";
 import ServerURL from "./ServerURL";
 
+axios.defaults.withCredentials = true; // cookies
+
 export const apiGetGalleryList = async (): Promise<string[]> => {
   const res = await axios.get(`${ServerURL}/gallery_list`);
   return res.data.split("\n");
@@ -36,11 +38,16 @@ export const apiGetImage = async (
   return res.data;
 };
 
-export const apiGetGalleryPreview = async (galleryName: string): Promise<string> => {
-  const res = await axios.get(`${ServerURL}/image_random?gallery=${galleryName}&size=s`)
+export const apiGetGalleryPreview = async (
+  galleryName: string
+): Promise<string> => {
+  const res = await axios.get(
+    `${ServerURL}/image_random?gallery=${galleryName}&size=s`
+  );
   return res.data;
-}
-
-export const apiPostPhotoSubmission = async (imageData: string) => {
 };
 
+export const apiPostPhotoSubmission = async (imageData: Uint8Array) => {
+  const res = await axios.post(`${ServerURL}/image`, imageData);
+  return res.data;
+};

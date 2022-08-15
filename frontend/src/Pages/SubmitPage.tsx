@@ -7,7 +7,7 @@ import ImageSize from "../Models/ImageSize";
 const SubmitPage = (): JSX.Element => {
   const navigate = useNavigate();
 
-  const [photo, setPhoto] = useState<string>("");
+  const [photoData, setPhotoData] = useState<Uint8Array>(new Uint8Array());
 
   const showFile = (event: any) => {
     let file = event.target.files[0];
@@ -16,18 +16,19 @@ const SubmitPage = (): JSX.Element => {
 
     reader.onload = () => {
       if (reader.result) {
-        let data = reader.result.toString();
-        data = data.slice(23, data.length); // remove data:image/...
-        setPhoto(data);
-        apiPostPhotoSubmission(data);
-        alert("Submitted Image");
+        let ase = reader.result;
+        if (typeof(ase) === "object") {
+          let stuff = new Uint8Array(ase);
+          setPhotoData(stuff);
+        }
       }
     };
     reader.onerror = () => {
       alert(reader.error);
     };
     if (file) {
-      reader.readAsDataURL(file);
+      // reader.readAsBinaryString(file);
+      reader.readAsArrayBuffer(file);
     }
   };
 
@@ -55,7 +56,8 @@ const SubmitPage = (): JSX.Element => {
           <div>
             <input type={"file"} onChange={showFile} accept={".jpeg,.jpg"} />
             <br />
-            {photo && <Image src={photo} size={ImageSize.s} />}
+            <button onClick={() => apiPostPhotoSubmission(photoData)}>SUBMIT PHOTO</button>
+            {/* {photoData && <Image src={photoData} size={ImageSize.s} />} */}
           </div>
         }
       />
