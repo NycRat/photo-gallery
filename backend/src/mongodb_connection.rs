@@ -5,6 +5,7 @@ use dotenv::dotenv;
 
 pub struct MongoConnection {
     pub client: mongodb::Client,
+    pub admin_token: String,
 }
 
 pub fn is_valid_gallery(gallery: &str) -> bool {
@@ -19,10 +20,14 @@ impl MongoConnection {
     pub async fn init() -> Self {
         dotenv().ok();
         let uri = env::var("MONGODB_URI").unwrap();
+        let admin_token = env::var("ADMIN_TOKEN").unwrap();
         let client_options = mongodb::options::ClientOptions::parse(uri).await.unwrap();
         let client = mongodb::Client::with_options(client_options).unwrap();
 
-        MongoConnection { client }
+        MongoConnection {
+            client,
+            admin_token,
+        }
     }
 
     pub fn get_gallery(&self, gallery_name: &str) -> mongodb::Database {
@@ -100,5 +105,54 @@ impl MongoConnection {
                 return 0;
             }
         }
+    }
+
+    pub async fn post_image(
+        &self,
+        gallery_name: &str,
+        album_name: &str,
+        image_data: &Vec<u8>,
+        image_size: &str,
+    ) {
+        let album = self.get_album(gallery_name, album_name);
+        match image_size {
+            "x" | "s" | "m" | "l" => {}
+            _ => {
+                return;
+            }
+        }
+
+        use mongodb::bson::spec::BinarySubtype;
+        use mongodb::bson::Binary;
+
+        let image_index: u32 = album
+            .count_documents(doc! {"size": &image_size}, None)
+            .await
+            .unwrap() as u32;
+
+        let binary_data = Binary {
+            subtype: BinarySubtype::Generic,
+            bytes: image_data.to_vec(),
+        };
+
+        match album
+            .insert_one(
+                doc! {
+                    "index": image_index,
+                    "size": image_size,
+                    "image_data": binary_data
+                },
+                None,
+            )
+            .await
+        {
+            Ok(_res) => {
+                println!(
+                    "Inserted {} image with at index: {}",
+                    image_size, image_index
+                );
+            }
+            Err(e) => println!("{}", e),
+        };
     }
 }

@@ -16,4 +16,5 @@ dotenv = "0.15.0"
 # rocket_cors = "0.5.1"
 rocket_cors = { git = "https://github.com/lawliet89/rocket_cors", branch = "master" }
 rand = "0.8.5"
+image = "0.24.3"
 
