@@ -1,6 +1,3 @@
-use std::io::Read;
-
-use mongodb::Cursor;
 use mongodb_connection::{is_public_gallery, is_valid_gallery, MongoConnection};
 use rand::Rng;
 use rocket::data::ToByteUnit;
@@ -11,21 +8,6 @@ use rocket::{http::CookieJar, State};
 extern crate rocket;
 
 mod mongodb_connection;
-
-fn scale_image_file(image: &image::DynamicImage, scale: f32) -> image::DynamicImage {
-    image.thumbnail(
-        (image.width() as f32 * scale) as u32,
-        (image.height() as f32 * scale) as u32,
-    )
-}
-
-fn get_image_buffer(image: &image::DynamicImage) -> Vec<u8> {
-    let mut cursor = std::io::Cursor::new(Vec::new());
-    image
-        .write_to(&mut cursor, image::ImageOutputFormat::Jpeg(75))
-        .unwrap();
-    cursor.into_inner()
-}
 
 #[get("/gallery_list")]
 async fn get_gallery_list(mongodb_connection: &State<MongoConnection>) -> String {
@@ -56,6 +38,21 @@ async fn get_album_list(gallery: &str, mongodb_connection: &State<MongoConnectio
     res
 }
 
+#[get("/album_length?<gallery>&<album>")]
+async fn get_album_length(
+    gallery: &str,
+    album: &str,
+    mongodb_connection: &State<MongoConnection>,
+) -> String {
+    if !is_public_gallery(gallery) {
+        return "0".to_owned();
+    }
+    mongodb_connection
+        .get_album_length(gallery, album)
+        .await
+        .to_string()
+}
+
 #[get("/image?<gallery>&<album>&<index>&<size>")]
 async fn get_image(
     gallery: &str,
@@ -72,23 +69,58 @@ async fn get_image(
         .await
     {
         Ok(img_data) => return img_data,
-        Err(e) => return "".to_owned(),
+        Err(_) => return "".to_owned(),
     }
 }
 
-#[get("/album_length?<gallery>&<album>")]
-async fn get_album_length(
+#[post("/image?<gallery>&<album>", data = "<image_data>")]
+async fn post_image(
     gallery: &str,
     album: &str,
+    image_data: Data<'_>,
+    jar: &CookieJar<'_>,
     mongodb_connection: &State<MongoConnection>,
-) -> String {
-    if !is_public_gallery(gallery) {
-        return "0".to_owned();
+) {
+    let data_str;
+    match image_data.open(15.megabytes()).into_bytes().await {
+        Ok(bytes) => {
+            data_str = bytes.to_vec();
+        }
+        Err(_) => {
+            return;
+        }
     }
-    mongodb_connection
-        .get_album_length(gallery, album)
-        .await
-        .to_string()
+    match jar.get("auth_token") {
+        Some(token) => {
+            if mongodb_connection
+                .is_admin_token(gallery, token.value())
+                .await
+            {
+                mongodb_connection
+                    .scale_and_post_image(&data_str, gallery, album)
+                    .await;
+            }
+        }
+        None => {}
+    }
+}
+
+#[delete("/image?<gallery>&<album>&<index>")]
+async fn delete_image(
+    gallery: &str,
+    album: &str,
+    index: u32,
+    jar: &CookieJar<'_>,
+    mongodb_connection: &State<MongoConnection>,
+) {
+    match jar.get("auth_token") {
+        Some(token) => {
+            if mongodb_connection.is_admin_token(gallery, token.value()).await {
+                mongodb_connection.delete_image(gallery, album, index).await;
+            }
+        }
+        None => {}
+    }
 }
 
 #[get("/image_random?<gallery>&<size>")]
@@ -110,75 +142,25 @@ async fn get_random_gallery_image(
 }
 
 #[get("/has_admin?<gallery>")]
-async fn get_has_admin(gallery: &str, jar: &CookieJar<'_>, mongodb_connection: &State<MongoConnection>) -> String {
-    println!("{:?}", jar);
+async fn get_has_admin(
+    gallery: &str,
+    jar: &CookieJar<'_>,
+    mongodb_connection: &State<MongoConnection>,
+) -> String {
     match jar.get("auth_token") {
         Some(token) => {
-            let gallery_token = mongodb_connection.get_admin_token(gallery).await;
-            if gallery_token == "" {
-                return "false".to_owned();
-            }
-            println!("{} != {}", token.value(), gallery_token);
-            if token.value() == gallery_token {
+            if mongodb_connection
+                .is_admin_token(gallery, token.value())
+                .await
+            {
                 return "true".to_owned();
             }
         }
-        None => {
-            println!("NO TOKEN");
-        }
+        None => {}
     }
     return "false".to_owned();
 }
 
-#[post("/image", data = "<image_data>")]
-async fn post_image_to_image_db(
-    image_data: Data<'_>,
-    jar: &CookieJar<'_>,
-    mongodb_connection: &State<MongoConnection>,
-) {
-    let data_str;
-    match image_data.open(15.megabytes()).into_bytes().await {
-        Ok(bytes) => {
-            data_str = bytes.to_vec();
-        }
-        Err(_) => {
-            return;
-        }
-    }
-    match image::load_from_memory_with_format(&data_str, image::ImageFormat::Jpeg) {
-        Ok(image_l) => {
-            // TODO - determine solution to scaling with different image sizes
-            let image_x = scale_image_file(&image_l, 1f32 / 24f32);
-            let image_s = scale_image_file(&image_l, 1f32 / 4f32);
-            let image_m = scale_image_file(&image_l, 1f32 / 2f32);
-            match jar.get("auth_token") {
-                Some(token) => {
-                    if token.value() == mongodb_connection.get_admin_token("imageDB").await {
-                        mongodb_connection
-                            .post_image("imageDB", "images", &get_image_buffer(&image_x), "x")
-                            .await;
-                        mongodb_connection
-                            .post_image("imageDB", "images", &get_image_buffer(&image_s), "s")
-                            .await;
-                        mongodb_connection
-                            .post_image("imageDB", "images", &get_image_buffer(&image_m), "m")
-                            .await;
-                        mongodb_connection
-                            .post_image("imageDB", "images", &get_image_buffer(&image_l), "l")
-                            .await;
-                        return;
-                    }
-                }
-                None => {}
-            }
-            // go in pending database
-        }
-        Err(_) => {
-            // image is not jpeg
-            return;
-        }
-    }
-}
 
 #[launch]
 async fn rocket() -> _ {
@@ -189,7 +171,7 @@ async fn rocket() -> _ {
     let cors = CorsOptions::default()
         .allowed_origins(AllowedOrigins::all())
         .allowed_methods(
-            vec![Method::Get, Method::Post, Method::Patch]
+            vec![Method::Get, Method::Post, Method::Delete]
                 .into_iter()
                 .map(From::from)
                 .collect(),
@@ -208,7 +190,8 @@ async fn rocket() -> _ {
                 get_image,
                 get_random_gallery_image,
                 get_has_admin,
-                post_image_to_image_db
+                post_image,
+                delete_image
             ],
         )
 }

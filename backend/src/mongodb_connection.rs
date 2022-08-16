@@ -1,7 +1,23 @@
 use mongodb::bson::{doc, Document};
+use tokio_stream::StreamExt;
 use std::env;
 extern crate dotenv;
 use dotenv::dotenv;
+
+fn scale_image_file(image: &image::DynamicImage, scale: f32) -> image::DynamicImage {
+    image.thumbnail(
+        (image.width() as f32 * scale) as u32,
+        (image.height() as f32 * scale) as u32,
+    )
+}
+
+fn get_image_buffer(image: &image::DynamicImage) -> Vec<u8> {
+    let mut cursor = std::io::Cursor::new(Vec::new());
+    image
+        .write_to(&mut cursor, image::ImageOutputFormat::Jpeg(75))
+        .unwrap();
+    cursor.into_inner()
+}
 
 pub struct MongoConnection {
     pub client: mongodb::Client,
@@ -90,7 +106,7 @@ impl MongoConnection {
     pub async fn get_album_length(&self, gallery_name: &str, album_name: &str) -> u32 {
         match self
             .get_album(gallery_name, album_name)
-            .count_documents(doc!["size": "s"], None)
+            .count_documents(doc!{"size": "s"}, None)
             .await
         {
             Ok(len) => {
@@ -102,7 +118,18 @@ impl MongoConnection {
         }
     }
 
-    pub async fn get_admin_token( &self, gallery_name: &str) -> String {
+    pub async fn is_admin_token(&self, gallery_name: &str, token: &str) -> bool {
+        let gallery_token = self.get_admin_token(gallery_name).await;
+        if gallery_token == "" {
+            return false;
+        }
+        if token == gallery_token {
+            return true;
+        }
+        return false;
+    }
+
+    async fn get_admin_token(&self, gallery_name: &str) -> String {
         let col = self.get_album("tokenDB", "tokens");
         match col.find_one(doc! {"gallery": gallery_name}, None).await {
             Ok(doc) => {
@@ -115,11 +142,37 @@ impl MongoConnection {
                     }
                 }
             }
-            Err(_) => {
-                return "".to_owned()
-            }
+            Err(_) => return "".to_owned(),
         }
         "".to_owned()
+    }
+
+    pub async fn scale_and_post_image(
+        &self,
+        image_data: &Vec<u8>,
+        gallery_name: &str,
+        album_name: &str,
+    ) {
+        match image::load_from_memory_with_format(&image_data, image::ImageFormat::Jpeg) {
+            Ok(image_l) => {
+                // TODO - determine solution to scaling with different image sizes
+                let image_x = scale_image_file(&image_l, 1f32 / 24f32);
+                let image_s = scale_image_file(&image_l, 1f32 / 4f32);
+                let image_m = scale_image_file(&image_l, 1f32 / 2f32);
+                // go in pending database
+                self.post_image(gallery_name, album_name, &get_image_buffer(&image_x), "x")
+                    .await;
+                self.post_image(gallery_name, album_name, &get_image_buffer(&image_s), "s")
+                    .await;
+                self.post_image(gallery_name, album_name, &get_image_buffer(&image_m), "m")
+                    .await;
+                self.post_image(gallery_name, album_name, &get_image_buffer(&image_l), "l")
+                    .await;
+            }
+            Err(_) => {
+                // image is not jpeg
+            }
+        }
     }
 
     pub async fn post_image(
@@ -169,5 +222,24 @@ impl MongoConnection {
             }
             Err(e) => println!("{}", e),
         };
+    }
+
+    pub async fn delete_image(&self, gallery_name: &str, album_name: &str, index: u32) {
+        let album = self.get_album(gallery_name, album_name);
+        let update_doc = doc! {"$inc": {"index": -1}};
+
+        match album.delete_many(doc! {"index": index}, None).await {
+            Ok(del_res) => {
+                println!("{:?}", del_res);
+                match album.update_many(doc! {"index": {"$gt": index}}, update_doc, None).await {
+                    Ok(update_res) => {
+                        println!("{:?}", update_res);
+                    }
+                    Err(_) => {}
+                }
+            }
+            Err(_) => {}
+        }
+        
     }
 }
