@@ -54,7 +54,6 @@ const GalleryPage = (): JSX.Element => {
 
     const getAlbums = async () => {
       const albumList = await apiGetAlbumList(galleryName);
-      setIsLoading(false);
       for (let i = 0; i < albumList.length; i++) {
         previewIndices.current.push(
           Math.floor(
@@ -63,6 +62,7 @@ const GalleryPage = (): JSX.Element => {
         );
       }
       setAlbumList(albumList);
+      setIsLoading(false);
     };
     getAlbums();
     setGallery(galleryName);
@@ -119,18 +119,23 @@ const GalleryPage = (): JSX.Element => {
             </button>
             {isLoading ? (
               <h1>Loading ...</h1>
-            ) : (
+            ) : albumList.length !== 0 ? (
               <div>
                 <h1 className="title">{galleryName}</h1>
                 {albumPreviews.map((album, i) => (
                   <AlbumPreview key={i} {...album} />
                 ))}
               </div>
+            ) : (
+              <h1>404 Gallery Not Found</h1>
             )}
           </div>
         }
       />
-      <Route path="/album/:albumName" element={<AlbumPage hasAdminAccess={hasAdminAccess} />} />
+      <Route
+        path="/album/:albumName"
+        element={<AlbumPage hasAdminAccess={hasAdminAccess} />}
+      />
       <Route path="*" element={<div>404 Page Not Found</div>} />
     </Routes>
   );

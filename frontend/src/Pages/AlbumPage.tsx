@@ -108,6 +108,16 @@ const AlbumPage = (props: { hasAdminAccess: boolean }): JSX.Element => {
     selectedImageIndex,
   ]);
 
+  const handleClickBackButton = () => {
+    if (galleryName) {
+      if (galleryName === "imageDB") {
+        navigate(`/`);
+        return;
+      }
+    }
+    navigate(`/gallery/${galleryName}`);
+  };
+
   return (
     <div className="album-page">
       {
@@ -118,12 +128,7 @@ const AlbumPage = (props: { hasAdminAccess: boolean }): JSX.Element => {
           selectedImageIndex < images.length &&
           albumLength !== 0
         ) && (
-          <button
-            className="back-button"
-            onClick={() => {
-              navigate(`/gallery/${galleryName}`);
-            }}
-          >
+          <button className="back-button" onClick={handleClickBackButton}>
             Back
           </button>
         )
@@ -162,7 +167,12 @@ const AlbumPage = (props: { hasAdminAccess: boolean }): JSX.Element => {
           </div>
         ) : (
           <div>
-            <h1 className="title">{albumName}</h1>
+            {galleryName === "imageDB" ? (
+              <h1>Images</h1>
+            ) : (
+              <h1 className="title">{albumName}</h1>
+            )}
+
             {images.map((photo, i) => (
               <Image
                 key={i}

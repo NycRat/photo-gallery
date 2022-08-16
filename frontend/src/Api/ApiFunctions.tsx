@@ -9,6 +9,9 @@ export const apiGetGalleryList = async (): Promise<string[]> => {
 
 export const apiGetAlbumList = async (gallery: string): Promise<string[]> => {
   const res = await axios.get(`${ServerURL}/album_list?gallery=${gallery}`);
+  if (res.data.length === 0) {
+    return [];
+  }
   return res.data.split("\n");
 };
 
