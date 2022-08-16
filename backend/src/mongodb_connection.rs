@@ -5,7 +5,6 @@ use dotenv::dotenv;
 
 pub struct MongoConnection {
     pub client: mongodb::Client,
-    pub admin_token: String,
 }
 
 pub fn is_valid_gallery(gallery: &str) -> bool {
@@ -13,21 +12,17 @@ pub fn is_valid_gallery(gallery: &str) -> bool {
 }
 
 pub fn is_public_gallery(gallery: &str) -> bool {
-    return gallery != "admin" && gallery != "local" && gallery != "config";
+    return gallery != "admin" && gallery != "local" && gallery != "config" && gallery != "tokenDB";
 }
 
 impl MongoConnection {
     pub async fn init() -> Self {
         dotenv().ok();
         let uri = env::var("MONGODB_URI").unwrap();
-        let admin_token = env::var("ADMIN_TOKEN").unwrap();
         let client_options = mongodb::options::ClientOptions::parse(uri).await.unwrap();
         let client = mongodb::Client::with_options(client_options).unwrap();
 
-        MongoConnection {
-            client,
-            admin_token,
-        }
+        MongoConnection { client }
     }
 
     pub fn get_gallery(&self, gallery_name: &str) -> mongodb::Database {
@@ -105,6 +100,26 @@ impl MongoConnection {
                 return 0;
             }
         }
+    }
+
+    pub async fn get_admin_token( &self, gallery_name: &str) -> String {
+        let col = self.get_album("tokenDB", "tokens");
+        match col.find_one(doc! {"gallery": gallery_name}, None).await {
+            Ok(doc) => {
+                if let Some(token_doc) = doc {
+                    match token_doc.get_str("token") {
+                        Ok(token) => {
+                            return token.to_owned();
+                        }
+                        Err(_) => {}
+                    }
+                }
+            }
+            Err(_) => {
+                return "".to_owned()
+            }
+        }
+        "".to_owned()
     }
 
     pub async fn post_image(

@@ -109,6 +109,27 @@ async fn get_random_gallery_image(
         .unwrap()
 }
 
+#[get("/has_admin?<gallery>")]
+async fn get_has_admin(gallery: &str, jar: &CookieJar<'_>, mongodb_connection: &State<MongoConnection>) -> String {
+    println!("{:?}", jar);
+    match jar.get("auth_token") {
+        Some(token) => {
+            let gallery_token = mongodb_connection.get_admin_token(gallery).await;
+            if gallery_token == "" {
+                return "false".to_owned();
+            }
+            println!("{} != {}", token.value(), gallery_token);
+            if token.value() == gallery_token {
+                return "true".to_owned();
+            }
+        }
+        None => {
+            println!("NO TOKEN");
+        }
+    }
+    return "false".to_owned();
+}
+
 #[post("/image", data = "<image_data>")]
 async fn post_image_to_image_db(
     image_data: Data<'_>,
@@ -132,7 +153,7 @@ async fn post_image_to_image_db(
             let image_m = scale_image_file(&image_l, 1f32 / 2f32);
             match jar.get("auth_token") {
                 Some(token) => {
-                    if token.value() == mongodb_connection.admin_token {
+                    if token.value() == mongodb_connection.get_admin_token("imageDB").await {
                         mongodb_connection
                             .post_image("imageDB", "images", &get_image_buffer(&image_x), "x")
                             .await;
@@ -186,6 +207,7 @@ async fn rocket() -> _ {
                 get_album_length,
                 get_image,
                 get_random_gallery_image,
+                get_has_admin,
                 post_image_to_image_db
             ],
         )
