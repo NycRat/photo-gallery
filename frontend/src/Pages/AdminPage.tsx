@@ -4,10 +4,10 @@ import { useCookies } from "react-cookie";
 const AdminPage = (): JSX.Element => {
   const tokenRef = useRef<string>("");
   const [token, setToken] = useState<string>("");
-  const [cookies, setCookies, removeCookie] = useCookies(["auth_token"]);
+  const [cookies, setCookies] = useCookies(["auth_token"]);
 
   useEffect(() => {
-    if (cookies.auth_token !== token) {
+    if (cookies.auth_token !== token && token !== "") {
       setCookies("auth_token", token, {
         path: "/",
         secure: false,
@@ -32,7 +32,7 @@ const AdminPage = (): JSX.Element => {
       <form onSubmit={handleSubmit}>
         <label>Admin Token: </label>
         <input type={"password"} onChange={handleChange} />
-        <input type={"button"} value={"Enter"} />
+        <input type={"submit"} value={"Enter"} />
       </form>
     </div>
   );

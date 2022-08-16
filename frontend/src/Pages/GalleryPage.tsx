@@ -19,6 +19,7 @@ const GalleryPage = (): JSX.Element => {
   const previewIndices = useRef<number[]>([]);
   const loadIndex = useRef<number>(0);
   const [hasAdminAccess, setHasAdminAccess] = useState<boolean>(false);
+  const [gallery, setGallery] = useState<string>("");
 
   const { galleryName } = useParams();
   const navigate = useNavigate();
@@ -43,6 +44,7 @@ const GalleryPage = (): JSX.Element => {
     if (!galleryName) {
       return;
     }
+
     setAlbumPreviews([]);
     setIsLoading(true);
     setAlbumList([]);
@@ -63,10 +65,11 @@ const GalleryPage = (): JSX.Element => {
       setAlbumList(albumList);
     };
     getAlbums();
+    setGallery(galleryName);
   }, [galleryName]);
 
   useEffect(() => {
-    if (!galleryName || albumList.length === 0) {
+    if (!gallery || albumList.length === 0) {
       return;
     }
 
@@ -85,7 +88,7 @@ const GalleryPage = (): JSX.Element => {
         name: albumList[index],
         images: [
           await apiGetImage(
-            galleryName,
+            gallery,
             albumList[index],
             previewIndices.current[index],
             imageSize
@@ -103,7 +106,7 @@ const GalleryPage = (): JSX.Element => {
     };
 
     fetchPreview();
-  }, [loadedX, albumList, galleryName, albumPreviews]);
+  }, [loadedX, albumList, albumPreviews, gallery]);
 
   return (
     <Routes>

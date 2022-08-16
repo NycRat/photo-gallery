@@ -3,12 +3,9 @@ import GalleryPage from "./Pages/GalleryPage";
 import MainPage from "./Pages/MainPage";
 import Navbar from "./Components/Navbar";
 import SubmitPage from "./Pages/SubmitPage";
-import { useCookies } from "react-cookie";
-import { useEffect } from "react";
 import AdminPage from "./Pages/AdminPage";
 
 const App = (): JSX.Element => {
-  const [cookies, setCookies, removeCookie] = useCookies(["auth_token"]);
 
   return (
     <div className="app">
