@@ -19,6 +19,7 @@ const AdminPage = (): JSX.Element => {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    alert("Entered Admin Token");
     setToken(tokenRef.current);
   }
 

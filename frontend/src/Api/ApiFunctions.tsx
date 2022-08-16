@@ -52,9 +52,14 @@ export const apiGetHasAdminAccess = async (gallery: string) => {
   return res.data;
 };
 
-export const apiPostPhotoSubmission = async (imageData: Uint8Array) => {
-  const res = await axios.post(`${ServerURL}/image`, imageData, {
+export const apiPostPhoto = async (imageData: Uint8Array, gallery: string, album: string) => {
+  await axios.post(`${ServerURL}/image?gallery=${gallery}&album=${album}`, imageData, {
     withCredentials: true,
   });
-  return res.data;
+};
+
+export const apiDeletePhoto = async (gallery: string, album: string, index: number) => {
+  await axios.delete(`${ServerURL}/image?gallery=${gallery}&album=${album}&index=${index}`, {
+    withCredentials: true,
+  });
 };

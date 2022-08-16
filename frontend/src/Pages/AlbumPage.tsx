@@ -1,10 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { apiGetImage, apiGetAlbumLength } from "../Api/ApiFunctions";
+import {
+  apiGetImage,
+  apiGetAlbumLength,
+  apiDeletePhoto,
+} from "../Api/ApiFunctions";
 import Image from "../Components/Image";
 import ImageSize from "../Models/ImageSize";
 
-const AlbumPage = (): JSX.Element => {
+const AlbumPage = (props: { hasAdminAccess: boolean }): JSX.Element => {
   const [images, setImages] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [albumLength, setAlbumLength] = useState<number>(0);
@@ -94,7 +98,15 @@ const AlbumPage = (): JSX.Element => {
 
       fetchPhoto();
     }
-  }, [albumLength, albumName, galleryName, images, loadIndex, loadedMsList, selectedImageIndex]);
+  }, [
+    albumLength,
+    albumName,
+    galleryName,
+    images,
+    loadIndex,
+    loadedMsList,
+    selectedImageIndex,
+  ]);
 
   return (
     <div className="album-page">
@@ -122,17 +134,31 @@ const AlbumPage = (): JSX.Element => {
         selectedImageIndex >= 0 && selectedImageIndex < images.length ? (
           <div>
             <div className="nav-cover" />
+            <Image
+              key={selectedImageIndex}
+              src={images[selectedImageIndex]}
+              size={ImageSize.m}
+            />
             <button
               className="back-button"
               onClick={() => setSelectedImageIndex(-1)}
             >
               {"Back"}
             </button>
-            <Image
-              key={selectedImageIndex}
-              src={images[selectedImageIndex]}
-              size={ImageSize.m}
-            />
+            {props.hasAdminAccess && (
+              <button
+                className="delete-button"
+                onClick={() => {
+                  apiDeletePhoto(
+                    galleryName ?? "",
+                    albumName ?? "",
+                    selectedImageIndex
+                  );
+                }}
+              >
+                Delete
+              </button>
+            )}
           </div>
         ) : (
           <div>

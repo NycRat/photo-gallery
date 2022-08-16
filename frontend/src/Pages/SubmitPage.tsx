@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Route, Routes, useNavigate } from "react-router-dom";
-import { apiPostPhotoSubmission } from "../Api/ApiFunctions";
+import { apiPostPhoto } from "../Api/ApiFunctions";
 
 const SubmitPage = (): JSX.Element => {
   const navigate = useNavigate();
@@ -15,7 +15,7 @@ const SubmitPage = (): JSX.Element => {
     reader.onload = () => {
       if (reader.result) {
         let arrBuf = reader.result;
-        if (typeof(arrBuf) === "object") {
+        if (typeof arrBuf === "object") {
           let stuff = new Uint8Array(arrBuf);
           setPhotoData(stuff);
         }
@@ -54,7 +54,11 @@ const SubmitPage = (): JSX.Element => {
           <div>
             <input type={"file"} onChange={showFile} accept={".jpeg,.jpg"} />
             <br />
-            <button onClick={() => apiPostPhotoSubmission(photoData)}>SUBMIT PHOTO</button>
+            <button
+              onClick={() => apiPostPhoto(photoData, "imageDB", "images")}
+            >
+              SUBMIT PHOTO
+            </button>
           </div>
         }
       />

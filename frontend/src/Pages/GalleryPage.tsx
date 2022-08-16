@@ -34,11 +34,11 @@ const GalleryPage = (): JSX.Element => {
     fetchAdminAccess();
   }, [galleryName]);
 
-  useEffect(() => {
-    if (hasAdminAccess) {
-      alert("You have admin access to this gallery");
-    }
-  }, [hasAdminAccess]);
+  // useEffect(() => {
+  //   if (hasAdminAccess) {
+  //     alert("You have admin access to this gallery");
+  //   }
+  // }, [hasAdminAccess]);
 
   useEffect(() => {
     if (!galleryName) {
@@ -130,7 +130,7 @@ const GalleryPage = (): JSX.Element => {
           </div>
         }
       />
-      <Route path="/album/:albumName" element={<AlbumPage />} />
+      <Route path="/album/:albumName" element={<AlbumPage hasAdminAccess={hasAdminAccess} />} />
       <Route path="*" element={<div>404 Page Not Found</div>} />
     </Routes>
   );

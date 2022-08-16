@@ -145,6 +145,17 @@ body,
   cursor: pointer;
 }
 
+.delete-button {
+  position: absolute;
+  top: 52px;
+  left: 10px;
+  padding: 10px;
+  font-size: 18px;
+  height: 46px;
+  font-family: "Raleway", sans-serif;
+  cursor: pointer;
+}
+
 .image {
   display: inline-block;
   margin: min(20px, 1vw);
