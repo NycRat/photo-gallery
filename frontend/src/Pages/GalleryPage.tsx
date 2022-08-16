@@ -6,6 +6,7 @@ import {
   apiGetImage,
   apiGetAlbumLength,
   apiGetAlbumList,
+  apiGetHasAdminAccess,
 } from "../Api/ApiFunctions";
 import { AlbumProps } from "../Models/AlbumProps";
 import ImageSize from "../Models/ImageSize";
@@ -17,9 +18,26 @@ const GalleryPage = (): JSX.Element => {
   const [loadedX, setLoadedX] = useState<boolean>(false);
   const previewIndices = useRef<number[]>([]);
   const loadIndex = useRef<number>(0);
+  const [hasAdminAccess, setHasAdminAccess] = useState<boolean>(false);
 
   const { galleryName } = useParams();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!galleryName) {
+      return;
+    }
+    const fetchAdminAccess = async () => {
+      setHasAdminAccess(await apiGetHasAdminAccess(galleryName));
+    };
+    fetchAdminAccess();
+  }, [galleryName]);
+
+  useEffect(() => {
+    if (hasAdminAccess) {
+      alert("You have admin access to this gallery");
+    }
+  }, [hasAdminAccess]);
 
   useEffect(() => {
     if (!galleryName) {

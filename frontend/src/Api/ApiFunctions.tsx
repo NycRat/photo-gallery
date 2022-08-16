@@ -2,8 +2,6 @@ import axios from "axios";
 import ImageSize, { imageSizeToString } from "../Models/ImageSize";
 import ServerURL from "./ServerURL";
 
-axios.defaults.withCredentials = true; // cookies
-
 export const apiGetGalleryList = async (): Promise<string[]> => {
   const res = await axios.get(`${ServerURL}/gallery_list`);
   return res.data.split("\n");
@@ -47,7 +45,16 @@ export const apiGetGalleryPreview = async (
   return res.data;
 };
 
+export const apiGetHasAdminAccess = async (gallery: string) => {
+  const res = await axios.get(`${ServerURL}/has_admin?gallery=${gallery}`, {
+    withCredentials: true,
+  });
+  return res.data;
+};
+
 export const apiPostPhotoSubmission = async (imageData: Uint8Array) => {
-  const res = await axios.post(`${ServerURL}/image`, imageData);
+  const res = await axios.post(`${ServerURL}/image`, imageData, {
+    withCredentials: true,
+  });
   return res.data;
 };
