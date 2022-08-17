@@ -3,8 +3,8 @@
 html,
 body,
 #root {
-  width: 100vw;
-  height: 100vh;
+  min-width: 100vw;
+  min-height: 100vh;
   padding: 0;
   margin: 0;
   font-family: "Raleway", sans-serif;
@@ -14,6 +14,65 @@ body,
   width: 100%;
   height: 100%;
   text-align: center;
+  user-select: none;
+}
+
+.title {
+  font-size: 40px;
+  @media only screen and (max-width: 600px) {
+    font-size: calc(28px + 2vw);
+  }
+}
+
+.navbar {
+  padding: 10px 0px;
+  background-color: #e5e5e5;
+  border-bottom: 1px solid #b8b5ba;
+  height: 30px;
+  width: 100%;
+  .nav-dropdown-icon {
+    display: none;
+    width: 60px;
+    height: 40px;
+  }
+  a {
+    color: black;
+    text-decoration: none;
+    font-size: 24px;
+    margin: 0px 18px;
+    &:hover {
+      font-weight: bold;
+    }
+  }
+  @media only screen and (max-width: 800px) {
+    .dropdown {
+      display: none;
+    }
+    .active {
+      display: inline-block;
+      position: absolute;
+      background-color: #f9f9f9;
+      box-shadow: 0px 4px 10px 2px #000000a3;
+      min-width: 160px;
+      padding: 12px 16px;
+      z-index: 1;
+      top: 52px;
+      right: 1px;
+      a {
+        font-size: 20px;
+        &::after {
+          content: "\a";
+          white-space: pre;
+        }
+      }
+    }
+    .nav-dropdown-icon {
+      display: block;
+      position: absolute;
+      right: 5px;
+      top: 5px;
+    }
+  }
 }
 
 .gallery-preview {
@@ -25,14 +84,20 @@ body,
   border-radius: 10px;
   cursor: pointer;
   max-width: 90%;
-
+  box-shadow: 4px 6px 8px 2px #000000cc;
   .s {
     width: min(80vw, 1000px);
+    max-width: min(75vw, 1000px);
+    max-height: min(75vw, 1000px);
+    box-shadow: none;
+    &:hover {
+      box-shadow: none;
+    }
   }
-}
-
-.gallery-preview:hover {
-  border: 1px solid #000;
+  transition: box-shadow 0.2s;
+  &:hover {
+    box-shadow: 8px 12px 10px 3px #000000cc;
+  }
 }
 
 .album-preview {
@@ -44,29 +109,50 @@ body,
   border-radius: 10px;
   cursor: pointer;
   max-width: 80%;
-}
-
-.album-preview:hover {
-  border: 1px solid #000;
+  box-shadow: 4px 6px 6px 1px #000000cc;
+  transition: box-shadow 0.2s;
+  &:hover {
+    box-shadow: 6px 10px 10px 2px #000000cc;
+  }
 }
 
 .album-page {
   h1 {
     padding: 20px;
     margin: 0;
-    margin-top: 50px;
   }
-  min-height: 100vh;
+  // min-height: 100vh;
   display: flex;
   justify-content: center;
 }
 
+.nav-cover {
+  position: absolute;
+  left: 0;
+  top: 0;
+  background-color: white;
+  width: 100%;
+  height: 100%;
+}
+
 .back-button {
   position: absolute;
-  top: 10px;
+  top: 2px;
   left: 10px;
   padding: 10px;
-  font-size: 20px;
+  font-size: 18px;
+  height: 46px;
+  font-family: "Raleway", sans-serif;
+  cursor: pointer;
+}
+
+.delete-button {
+  position: absolute;
+  top: 52px;
+  left: 10px;
+  padding: 10px;
+  font-size: 18px;
+  height: 46px;
   font-family: "Raleway", sans-serif;
   cursor: pointer;
 }
@@ -81,17 +167,26 @@ body,
 
 .x {
   width: min(75vw, 400px);
+  max-width: min(75vw, 400px);
+  max-height: min(75vw, 400px);
 }
 
 .s {
   width: min(75vw, 500px);
+  max-width: min(75vw, 500px);
+  max-height: min(75vw, 500px);
+
+  box-shadow: 4px 4px 6px 1px #000000cc;
+  transition: box-shadow 0.2s;
+  &:hover {
+    box-shadow: 6px 8px 8px 2px #000000cc;
+  }
 }
 
 .m {
   border-radius: 0;
   padding: 0;
   max-width: 95%;
-  // width: min(95%, 1000px);
   max-height: 95%;
   position: absolute;
   top: 0;
@@ -100,4 +195,88 @@ body,
   right: 0;
   margin: auto;
   cursor: default;
+}
+
+.new-image {
+  display: inline-block;
+  margin: min(20px, 1vw);
+  border: 2px solid #ccc;
+  border-radius: 10px;
+
+  width: 298px;
+  height: 264px;
+  background-color: #ffffff;
+  transition: all 0.5s;
+  &:hover {
+    border: 2px solid #333;
+    box-shadow: 0px 0px 0px 3px #333;
+  }
+
+  cursor: pointer;
+}
+
+.submit-page {
+  height: calc(100% - 51px);
+  width: 100%;
+  :not(:last-child) {
+    border-bottom: 1px solid #000;
+  }
+}
+
+.submit-option {
+  display: inline-block;
+  width: 100%;
+  height: calc(100% / 3 - 2px / 3);
+  margin: 0;
+  padding: 0;
+  display: flex;
+  h1 {
+    font-size: 80px;
+    margin: auto;
+  }
+  cursor: pointer;
+  transition: background-color 0.5s;
+  &:hover {
+    background-color: #c8c8c8;
+  }
+}
+
+.popup {
+  background-color: #f4f4f4;
+  border-radius: 20px;
+  width: max(80vw, 320px);
+  height: 90vh;
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  input {
+    margin-top: 15px;
+  }
+  button {
+    margin-top: 10px;
+  } 
+  .exit-button {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    font-size: 22px;
+  }
+
+  .image {
+    max-width: 90%;
+    max-height: max(240px, 80%);
+    border-radius: 0;
+    padding: 0;
+  }
+}
+
+.woah {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 100vw;
+  height: 100vh;
+  background-color: #00000044;
 }

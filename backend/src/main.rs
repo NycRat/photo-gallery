@@ -1,6 +1,10 @@
-use mongodb_connection::{is_valid_gallery, MongoConnection};
+use mongodb_connection::{is_public_gallery, is_valid_gallery, MongoConnection};
 use rand::Rng;
-use rocket::State;
+use rocket::data::ToByteUnit;
+use rocket::Data;
+use rocket::{http::CookieJar, State};
+
+
 #[macro_use]
 extern crate rocket;
 
@@ -35,6 +39,21 @@ async fn get_album_list(gallery: &str, mongodb_connection: &State<MongoConnectio
     res
 }
 
+#[get("/album_length?<gallery>&<album>")]
+async fn get_album_length(
+    gallery: &str,
+    album: &str,
+    mongodb_connection: &State<MongoConnection>,
+) -> String {
+    if !is_public_gallery(gallery) {
+        return "-1".to_owned();
+    }
+    mongodb_connection
+        .get_album_length(gallery, album)
+        .await
+        .to_string()
+}
+
 #[get("/image?<gallery>&<album>&<index>&<size>")]
 async fn get_image(
     gallery: &str,
@@ -43,7 +62,7 @@ async fn get_image(
     size: &str,
     mongodb_connection: &State<MongoConnection>,
 ) -> String {
-    if !is_valid_gallery(gallery) {
+    if !is_public_gallery(gallery) {
         return "".to_owned();
     }
     match mongodb_connection
@@ -51,23 +70,61 @@ async fn get_image(
         .await
     {
         Ok(img_data) => return img_data,
-        Err(e) => return e,
+        Err(_) => return "".to_owned(),
     }
 }
 
-#[get("/album_length?<gallery>&<album>")]
-async fn get_album_length(
+#[post("/image?<gallery>&<album>", data = "<image_data>")]
+async fn post_image(
     gallery: &str,
     album: &str,
+    image_data: Data<'_>,
+    jar: &CookieJar<'_>,
     mongodb_connection: &State<MongoConnection>,
-) -> String {
-    if !is_valid_gallery(gallery) {
-        return "".to_owned();
+) {
+    let data_str;
+    match image_data.open(15.megabytes()).into_bytes().await {
+        Ok(bytes) => {
+            data_str = bytes.to_vec();
+        }
+        Err(_) => {
+            return;
+        }
     }
-    mongodb_connection
-        .get_album_length(gallery, album)
-        .await
-        .to_string()
+    match jar.get("auth_token") {
+        Some(token) => {
+            if mongodb_connection
+                .is_admin_token(gallery, token.value())
+                .await
+            {
+                mongodb_connection
+                    .scale_and_post_image(&data_str, gallery, album)
+                    .await;
+            }
+        }
+        None => {}
+    }
+}
+
+#[delete("/image?<gallery>&<album>&<index>")]
+async fn delete_image(
+    gallery: &str,
+    album: &str,
+    index: u32,
+    jar: &CookieJar<'_>,
+    mongodb_connection: &State<MongoConnection>,
+) {
+    match jar.get("auth_token") {
+        Some(token) => {
+            if mongodb_connection
+                .is_admin_token(gallery, token.value())
+                .await
+            {
+                mongodb_connection.delete_image(gallery, album, index).await;
+            }
+        }
+        None => {}
+    }
 }
 
 #[get("/image_random?<gallery>&<size>")]
@@ -80,7 +137,7 @@ async fn get_random_gallery_image(
     let album = album_list
         .get(rand::thread_rng().gen_range(0..album_list.len()))
         .unwrap();
-    let album_len = mongodb_connection.get_album_length(gallery, album).await;
+    let album_len = mongodb_connection.get_album_length(gallery, album).await as u32;
     let image_index = rand::thread_rng().gen_range(0..album_len);
     mongodb_connection
         .get_image_data(gallery, album, image_index, size)
@@ -88,16 +145,74 @@ async fn get_random_gallery_image(
         .unwrap()
 }
 
+#[get("/has_admin?<gallery>")]
+async fn get_has_admin(
+    gallery: &str,
+    jar: &CookieJar<'_>,
+    mongodb_connection: &State<MongoConnection>,
+) -> String {
+    match jar.get("auth_token") {
+        Some(token) => {
+            if mongodb_connection
+                .is_admin_token(gallery, token.value())
+                .await
+            {
+                return "true".to_owned();
+            }
+        }
+        None => {}
+    }
+    return "false".to_owned();
+}
+
+#[post("/album?<gallery>&<album>")]
+async fn post_album(
+    gallery: &str,
+    album: &str,
+    jar: &CookieJar<'_>,
+    mongodb_connection: &State<MongoConnection>,
+) {
+    match jar.get("auth_token") {
+        Some(token) => {
+            if mongodb_connection
+                .is_admin_token(gallery, token.value())
+                .await
+            {
+                mongodb_connection.create_album(gallery, album).await;
+            }
+        }
+        None => {}
+    }
+}
+
+#[delete("/album?<gallery>&<album>")]
+async fn delete_album(
+    gallery: &str,
+    album: &str,
+    jar: &CookieJar<'_>,
+    mongodb_connection: &State<MongoConnection>,
+) {
+    match jar.get("auth_token") {
+        Some(token) => {
+            if mongodb_connection.is_admin_token(gallery, token.value()).await {
+                mongodb_connection.delete_album(gallery, album).await;
+            }
+        }
+        None => {}
+    }
+
+}
+
 #[launch]
 async fn rocket() -> _ {
-    let mongo_connection = MongoConnection::init().await;
+    let mongodb_connection = MongoConnection::init().await;
     use rocket::http::Method;
     use rocket_cors::{AllowedOrigins, CorsOptions};
 
     let cors = CorsOptions::default()
         .allowed_origins(AllowedOrigins::all())
         .allowed_methods(
-            vec![Method::Get, Method::Post, Method::Patch]
+            vec![Method::Get, Method::Post, Method::Delete]
                 .into_iter()
                 .map(From::from)
                 .collect(),
@@ -106,7 +221,7 @@ async fn rocket() -> _ {
 
     rocket::build()
         .attach(cors.to_cors().unwrap())
-        .manage(mongo_connection)
+        .manage(mongodb_connection)
         .mount(
             "/api/",
             routes![
@@ -115,6 +230,11 @@ async fn rocket() -> _ {
                 get_album_length,
                 get_image,
                 get_random_gallery_image,
+                get_has_admin,
+                post_image,
+                delete_image,
+                delete_album,
+                post_album
             ],
         )
 }

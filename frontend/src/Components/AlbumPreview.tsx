@@ -15,7 +15,7 @@ const AlbumPreview = (props: AlbumProps): JSX.Element => {
         navigate(`/gallery/${galleryName}/album/${props.name}`);
       }}
     >
-      <h1>{props.name}</h1>
+      <h1 className="title">{props.name}</h1>
       {props.images.length !== 0 && <Image src={props.images[0]} size={ImageSize.x} />}
     </div>
   );

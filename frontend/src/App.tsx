@@ -1,23 +1,20 @@
 import { HashRouter, Route, Routes } from "react-router-dom";
-import GalleryPage from "./GalleryPage";
-import MainPage from "./MainPage";
-import NotFoundPage from "./NotFoundPage";
+import GalleryPage from "./Pages/GalleryPage";
+import MainPage from "./Pages/MainPage";
+import Navbar from "./Components/Navbar";
+import AdminPage from "./Pages/AdminPage";
 
 const App = (): JSX.Element => {
 
   return (
-     <div className="app">
+    <div className="app">
+      <Navbar />
       <HashRouter>
         <Routes>
-          <Route
-            path="/"
-            element={<MainPage />}
-          />
-          <Route
-            path="/gallery/:galleryName/*"
-            element={<GalleryPage />}
-          />
-          <Route path="*" element={<NotFoundPage />} />
+          <Route path="/" element={<MainPage />} />
+          <Route path="/gallery/:galleryName/*" element={<GalleryPage />} />
+          <Route path="/admin/*" element={<AdminPage />} />
+          <Route path="*" element={<div>404 Page Not Found</div>} />
         </Routes>
       </HashRouter>
     </div>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { apiGetGalleryList, apiGetGalleryPreview } from "./Api/AlbumApi";
-import GalleryPreview from "./Components/GalleryPreview";
+import { apiGetGalleryList, apiGetGalleryPreview } from "../Api/ApiFunctions";
+import GalleryPreview from "../Components/GalleryPreview";
 
 const MainPage = (): JSX.Element => {
   const [galleryList, setGalleries] = useState<string[]>([]);
@@ -20,7 +20,9 @@ const MainPage = (): JSX.Element => {
     }
     const fetchPreview = async () => {
       let newPreviews = [...galleryPreviews];
-      newPreviews.push(await apiGetGalleryPreview(galleryList[galleryPreviews.length]));
+      newPreviews.push(
+        await apiGetGalleryPreview(galleryList[galleryPreviews.length])
+      );
       setGalleryPreviews(newPreviews);
     };
     fetchPreview();
@@ -31,7 +33,9 @@ const MainPage = (): JSX.Element => {
   ) : (
     <div>
       {galleryList.map((gallery, i) => (
-        <GalleryPreview key={i} name={gallery} image={galleryPreviews[i]} />
+        <div key={i}>
+          <GalleryPreview name={gallery} image={galleryPreviews[i]} />
+        </div>
       ))}
     </div>
   );
