@@ -1,14 +1,53 @@
 use mongodb_connection::{is_public_gallery, is_valid_gallery, MongoConnection};
 use rand::Rng;
 use rocket::data::ToByteUnit;
-use rocket::Data;
-use rocket::{http::CookieJar, State};
-
+use rocket::request::{FromRequest, Outcome};
+use rocket::State;
+use rocket::{Data, Request};
 
 #[macro_use]
 extern crate rocket;
 
 mod mongodb_connection;
+
+struct AdminAuth(bool);
+
+#[rocket::async_trait]
+impl<'r> FromRequest<'r> for AdminAuth {
+    type Error = ();
+
+    async fn from_request(request: &'r Request<'_>) -> Outcome<Self, Self::Error> {
+        let token = request.headers().get_one("token");
+        let gallery;
+        if let Some(xd) = request.query_value::<String>("gallery") {
+            match xd {
+                Ok(gal) => {
+                    gallery = gal;
+                }
+                Err(_) => {
+                    // return Outcome::Failure((Status::Unauthorized, ApiTokenError::Missing));
+                    return Outcome::Success(AdminAuth(false));
+                }
+            }
+        } else {
+            // return Outcome::Failure((Status::Unauthorized, ApiTokenError::Missing));
+            return Outcome::Success(AdminAuth(false));
+        }
+
+        match token {
+            Some(token) => {
+                if let Some(mongodb_connection) = request.rocket().state::<MongoConnection>() {
+                    if mongodb_connection.is_admin_token(&gallery, token).await {
+                        return Outcome::Success(AdminAuth(true));
+                    }
+                }
+                return Outcome::Success(AdminAuth(false));
+                // return Outcome::Failure((Status::Unauthorized, ApiTokenError::Invalid));
+            }
+            None => Outcome::Success(AdminAuth(false)), // Outcome::Failure((Status::Unauthorized, ApiTokenError::Missing)),
+        }
+    }
+}
 
 #[get("/gallery_list")]
 async fn get_gallery_list(mongodb_connection: &State<MongoConnection>) -> String {
@@ -79,30 +118,22 @@ async fn post_image(
     gallery: &str,
     album: &str,
     image_data: Data<'_>,
-    jar: &CookieJar<'_>,
+    auth: AdminAuth,
     mongodb_connection: &State<MongoConnection>,
 ) {
-    let data_str;
-    match image_data.open(15.megabytes()).into_bytes().await {
-        Ok(bytes) => {
-            data_str = bytes.to_vec();
-        }
-        Err(_) => {
-            return;
-        }
-    }
-    match jar.get("auth_token") {
-        Some(token) => {
-            if mongodb_connection
-                .is_admin_token(gallery, token.value())
-                .await
-            {
-                mongodb_connection
-                    .scale_and_post_image(&data_str, gallery, album)
-                    .await;
+    if auth.0 {
+        let data_str;
+        match image_data.open(15.megabytes()).into_bytes().await {
+            Ok(bytes) => {
+                data_str = bytes.to_vec();
+            }
+            Err(_) => {
+                return;
             }
         }
-        None => {}
+        mongodb_connection
+            .scale_and_post_image(&data_str, gallery, album)
+            .await;
     }
 }
 
@@ -111,19 +142,11 @@ async fn delete_image(
     gallery: &str,
     album: &str,
     index: u32,
-    jar: &CookieJar<'_>,
+    auth: AdminAuth,
     mongodb_connection: &State<MongoConnection>,
 ) {
-    match jar.get("auth_token") {
-        Some(token) => {
-            if mongodb_connection
-                .is_admin_token(gallery, token.value())
-                .await
-            {
-                mongodb_connection.delete_image(gallery, album, index).await;
-            }
-        }
-        None => {}
+    if auth.0 {
+        mongodb_connection.delete_image(gallery, album, index).await;
     }
 }
 
@@ -146,21 +169,9 @@ async fn get_random_gallery_image(
 }
 
 #[get("/has_admin?<gallery>")]
-async fn get_has_admin(
-    gallery: &str,
-    jar: &CookieJar<'_>,
-    mongodb_connection: &State<MongoConnection>,
-) -> String {
-    match jar.get("auth_token") {
-        Some(token) => {
-            if mongodb_connection
-                .is_admin_token(gallery, token.value())
-                .await
-            {
-                return "true".to_owned();
-            }
-        }
-        None => {}
+async fn get_has_admin(gallery: &str, auth: AdminAuth) -> String {
+    if auth.0 {
+        return "true".to_owned();
     }
     return "false".to_owned();
 }
@@ -169,19 +180,11 @@ async fn get_has_admin(
 async fn post_album(
     gallery: &str,
     album: &str,
-    jar: &CookieJar<'_>,
+    auth: AdminAuth,
     mongodb_connection: &State<MongoConnection>,
 ) {
-    match jar.get("auth_token") {
-        Some(token) => {
-            if mongodb_connection
-                .is_admin_token(gallery, token.value())
-                .await
-            {
-                mongodb_connection.create_album(gallery, album).await;
-            }
-        }
-        None => {}
+    if auth.0 {
+        mongodb_connection.create_album(gallery, album).await;
     }
 }
 
@@ -189,18 +192,12 @@ async fn post_album(
 async fn delete_album(
     gallery: &str,
     album: &str,
-    jar: &CookieJar<'_>,
+    auth: AdminAuth,
     mongodb_connection: &State<MongoConnection>,
 ) {
-    match jar.get("auth_token") {
-        Some(token) => {
-            if mongodb_connection.is_admin_token(gallery, token.value()).await {
-                mongodb_connection.delete_album(gallery, album).await;
-            }
-        }
-        None => {}
+    if auth.0 {
+        mongodb_connection.delete_album(gallery, album).await;
     }
-
 }
 
 #[launch]

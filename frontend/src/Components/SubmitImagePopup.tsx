@@ -58,6 +58,7 @@ const SubmitImagePopup = (props: {
         <br />
         <button
           onClick={async () => {
+            alert("Adding Photo to Album");
             await apiPostPhoto(photoData, props.gallery, props.album)
             window.location.reload();
           }}

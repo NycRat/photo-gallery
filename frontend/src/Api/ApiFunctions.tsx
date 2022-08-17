@@ -1,4 +1,5 @@
 import axios from "axios";
+import { Cookies } from "react-cookie";
 import ImageSize, { imageSizeToString } from "../Models/ImageSize";
 import ServerURL from "./ServerURL";
 
@@ -49,8 +50,12 @@ export const apiGetGalleryPreview = async (
 };
 
 export const apiGetHasAdminAccess = async (gallery: string) => {
+  let token = new Cookies().get("auth_token");
   const res = await axios.get(`${ServerURL}/has_admin?gallery=${gallery}`, {
-    withCredentials: true,
+    // withCredentials: true,
+    headers: {
+      token: token,
+    },
   });
   return res.data;
 };
@@ -60,11 +65,15 @@ export const apiPostPhoto = async (
   gallery: string,
   album: string
 ) => {
+  let token = new Cookies().get("auth_token");
   await axios.post(
     `${ServerURL}/image?gallery=${gallery}&album=${album}`,
     imageData,
     {
-      withCredentials: true,
+      // withCredentials: true,
+      headers: {
+        token: token,
+      },
     }
   );
 };
@@ -74,26 +83,38 @@ export const apiDeletePhoto = async (
   album: string,
   index: number
 ) => {
+  let token = new Cookies().get("auth_token");
   await axios.delete(
     `${ServerURL}/image?gallery=${gallery}&album=${album}&index=${index}`,
     {
-      withCredentials: true,
+      // withCredentials: true,
+      headers: {
+        token: token,
+      },
     }
   );
 };
 
 export const apiPostAlbum = async (gallery: string, album: string) => {
+  let token = new Cookies().get("auth_token");
   await axios.post(
     `${ServerURL}/album?gallery=${gallery}&album=${album}`,
     {},
     {
-      withCredentials: true,
+      // withCredentials: true,
+      headers: {
+        token: token,
+      },
     }
   );
 };
 
 export const apiDeleteAlbum = async (gallery: string, album: string) => {
+  let token = new Cookies().get("auth_token");
   await axios.delete(`${ServerURL}/album?gallery=${gallery}&album=${album}`, {
-    withCredentials: true,
+    // withCredentials: true,
+    headers: {
+      token: token,
+    },
   });
 };
