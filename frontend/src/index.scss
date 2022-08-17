@@ -269,6 +269,31 @@ body,
     border-radius: 0;
     padding: 0;
   }
+
+  .file-drop-area {
+    background-color: #c6c6c6;
+    border-radius: 15px;
+    border: 5px solid black;
+
+    width: max(65vw, 290px);
+    max-width: 90%;
+    height: calc(80vh - 100px);
+
+    margin: auto;
+    margin-top: min(20px);
+    padding: 0;
+
+    &:hover {
+      background-color: #a7a7a7;
+    }
+
+    h1 {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+    }
+  }
 }
 
 .woah {

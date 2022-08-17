@@ -10,8 +10,13 @@ const SubmitImagePopup = (props: {
   const [previewData, setPreviewData] = useState<string>("");
   const [postingPhotos, setPostingPhotos] = useState<boolean>(false);
 
-  const updateFile = async (event: any) => {
-    let previewFile = event.target.files[0];
+  const updateFiles = async (files: FileList) => {
+    if (files.length === 0) {
+      setPreviewData("");
+      setPhotoDataArr([]);
+      return;
+    }
+    let previewFile = files[0];
     let previewReader = new FileReader();
     previewReader.onload = () => {
       if (previewReader.result) {
@@ -41,8 +46,8 @@ const SubmitImagePopup = (props: {
           dataArr.push(new Uint8Array(arrBuf));
         }
         index++;
-        if (index < event.target.files.length) {
-          reader.readAsArrayBuffer(event.target.files[index]);
+        if (index < files.length) {
+          reader.readAsArrayBuffer(files[index]);
         }
       }
     };
@@ -65,8 +70,13 @@ const SubmitImagePopup = (props: {
           Close
         </div>
         <input
+          id="fileInput"
           type={"file"}
-          onChange={updateFile}
+          onChange={(e) => {
+            if (e.target.files) {
+              updateFiles(e.target.files);
+            }
+          }}
           accept={".jpeg,.jpg"}
           multiple={true}
         />
@@ -90,8 +100,35 @@ const SubmitImagePopup = (props: {
           SUBMIT PHOTO
         </button>
         <br />
-        {previewData && (
+        {previewData ? (
           <img className="image" src={previewData} alt="preview" />
+        ) : (
+          <div
+            className="file-drop-area"
+            onDrop={(e) => {
+              e.preventDefault();
+              const dT = new DataTransfer();
+              let files = e.dataTransfer.files;
+              for (let i = 0; i < files.length; i++) {
+                dT.items.add(files[i]);
+              }
+              let inputElement = document.getElementById(
+                "fileInput"
+              ) as HTMLInputElement;
+              if (inputElement) {
+                inputElement.files = dT.files;
+              }
+              updateFiles(files);
+            }}
+            onDragEnter={(e) => {
+              e.preventDefault();
+            }}
+            onDragOver={(e) => {
+              e.preventDefault();
+            }}
+          >
+            <h1>Drop Images Here</h1>
+          </div>
         )}
       </div>
     </div>
