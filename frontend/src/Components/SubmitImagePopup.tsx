@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { apiPostPhoto } from "../Api/ApiFunctions";
 
 const SubmitImagePopup = (props: {
@@ -6,29 +6,13 @@ const SubmitImagePopup = (props: {
   album: string;
   onExit: () => void;
 }): JSX.Element => {
-  const [photoData, setPhotoData] = useState<Uint8Array>(new Uint8Array());
+  const [photoDataArr, setPhotoDataArr] = useState<Uint8Array[]>([]);
   const [previewData, setPreviewData] = useState<string>("");
+  const [postingPhotos, setPostingPhotos] = useState<boolean>(false);
 
-  const updateFile = (event: any) => {
-    let file = event.target.files[0];
-
-    let reader = new FileReader();
+  const updateFile = async (event: any) => {
+    let previewFile = event.target.files[0];
     let previewReader = new FileReader();
-
-    reader.onload = () => {
-      if (reader.result) {
-        let arrBuf = reader.result;
-        if (typeof arrBuf === "object") {
-          let stuff = new Uint8Array(arrBuf);
-          setPhotoData(stuff);
-        }
-      }
-    };
-
-    reader.onerror = () => {
-      alert(reader.error);
-    };
-
     previewReader.onload = () => {
       if (previewReader.result) {
         let previewStr = previewReader.result;
@@ -42,11 +26,37 @@ const SubmitImagePopup = (props: {
       alert(previewReader.error);
     };
 
-    if (file) {
-      previewReader.readAsDataURL(file);
-      reader.readAsArrayBuffer(file);
+    if (previewFile) {
+      previewReader.readAsDataURL(previewFile);
     }
+
+    let reader = new FileReader();
+    let dataArr: Uint8Array[] = [];
+    let index = 0;
+
+    reader.onload = () => {
+      if (reader.result) {
+        let arrBuf = reader.result;
+        if (typeof arrBuf === "object") {
+          dataArr.push(new Uint8Array(arrBuf));
+        }
+        index++;
+        if (index < event.target.files.length) {
+          reader.readAsArrayBuffer(event.target.files[index]);
+        }
+      }
+    };
+    reader.onerror = () => {
+      alert(reader.error);
+    };
+    reader.readAsArrayBuffer(previewFile);
+
+    setPhotoDataArr(dataArr);
   };
+
+  useEffect(() => {
+    console.log(photoDataArr);
+  }, [photoDataArr]);
 
   return (
     <div className="woah">
@@ -54,14 +64,28 @@ const SubmitImagePopup = (props: {
         <div className="exit-button" onClick={props.onExit}>
           Close
         </div>
-        <input type={"file"} onChange={updateFile} accept={".jpeg,.jpg"} />
+        <input
+          type={"file"}
+          onChange={updateFile}
+          accept={".jpeg,.jpg"}
+          multiple={true}
+        />
         <br />
         <button
           onClick={async () => {
-            alert("Adding Photo to Album");
-            await apiPostPhoto(photoData, props.gallery, props.album)
+            setPostingPhotos(true);
+            if (photoDataArr.length === 1) {
+              alert("Adding 1 Photo to Album");
+            } else {
+              alert(`Adding ${photoDataArr.length} Photos to Album`);
+            }
+            for (let data of photoDataArr) {
+              await apiPostPhoto(data, props.gallery, props.album);
+            }
+            setPostingPhotos(false);
             window.location.reload();
           }}
+          disabled={photoDataArr.length === 0 || postingPhotos}
         >
           SUBMIT PHOTO
         </button>
