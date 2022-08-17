@@ -131,8 +131,9 @@ async fn post_image(
                 return;
             }
         }
+        let image_index: u32 = mongodb_connection.get_album_length(gallery, album).await as u32;
         mongodb_connection
-            .scale_and_post_image(&data_str, gallery, album)
+            .scale_and_post_image(&data_str, gallery, album, image_index)
             .await;
     }
 }

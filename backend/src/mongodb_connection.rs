@@ -124,7 +124,7 @@ impl MongoConnection {
         }
         match self
             .get_album(gallery_name, album_name)
-            .count_documents(doc! {"size": "s"}, None)
+            .count_documents(doc! {"size": "x"}, None)
             .await
         {
             Ok(len) => {
@@ -170,6 +170,7 @@ impl MongoConnection {
         image_data: &Vec<u8>,
         gallery_name: &str,
         album_name: &str,
+        image_index: u32
     ) {
         match image::load_from_memory_with_format(&image_data, image::ImageFormat::Jpeg) {
             Ok(image_l) => {
@@ -178,13 +179,13 @@ impl MongoConnection {
                 let image_s = scale_image_file(&image_l, 1f32 / 4f32);
                 let image_m = scale_image_file(&image_l, 1f32 / 2f32);
                 // go in pending database
-                self.post_image(gallery_name, album_name, &get_image_buffer(&image_x), "x")
+                self.post_image(gallery_name, album_name, &get_image_buffer(&image_x), "x", image_index)
                     .await;
-                self.post_image(gallery_name, album_name, &get_image_buffer(&image_s), "s")
+                self.post_image(gallery_name, album_name, &get_image_buffer(&image_s), "s", image_index)
                     .await;
-                self.post_image(gallery_name, album_name, &get_image_buffer(&image_m), "m")
+                self.post_image(gallery_name, album_name, &get_image_buffer(&image_m), "m", image_index)
                     .await;
-                self.post_image(gallery_name, album_name, &get_image_buffer(&image_l), "l")
+                self.post_image(gallery_name, album_name, &get_image_buffer(&image_l), "l", image_index)
                     .await;
             }
             Err(_) => {
@@ -199,11 +200,13 @@ impl MongoConnection {
         album_name: &str,
         image_data: &Vec<u8>,
         image_size: &str,
+        image_index: u32
     ) {
         if !self.album_exists(gallery_name, album_name).await {
             return;
         }
         let album = self.get_album(gallery_name, album_name);
+
         match image_size {
             "x" | "s" | "m" | "l" => {}
             _ => {
@@ -213,11 +216,6 @@ impl MongoConnection {
 
         use mongodb::bson::spec::BinarySubtype;
         use mongodb::bson::Binary;
-
-        let image_index: u32 = album
-            .count_documents(doc! {"size": &image_size}, None)
-            .await
-            .unwrap() as u32;
 
         let binary_data = Binary {
             subtype: BinarySubtype::Generic,
