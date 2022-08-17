@@ -1,5 +1,4 @@
 use mongodb::bson::{doc, Document};
-use tokio_stream::StreamExt;
 use std::env;
 extern crate dotenv;
 use dotenv::dotenv;
@@ -48,6 +47,22 @@ impl MongoConnection {
     pub fn get_album(&self, gallery_name: &str, album_name: &str) -> mongodb::Collection<Document> {
         self.get_gallery(gallery_name)
             .collection::<Document>(album_name)
+    }
+
+    pub async fn album_exists(&self, gallery_name: &str, album_name: &str) -> bool {
+        match self
+            .get_gallery(gallery_name)
+            .list_collection_names(None)
+            .await
+        {
+            Ok(albums) => {
+                if albums.contains(&album_name.to_string()) {
+                    return true;
+                }
+            }
+            Err(_) => {}
+        }
+        return false;
     }
 
     pub async fn get_gallery_list(&self) -> Vec<String> {
@@ -103,17 +118,20 @@ impl MongoConnection {
             .unwrap()
     }
 
-    pub async fn get_album_length(&self, gallery_name: &str, album_name: &str) -> u32 {
+    pub async fn get_album_length(&self, gallery_name: &str, album_name: &str) -> i64 {
+        if !self.album_exists(gallery_name, album_name).await {
+            return -1;
+        }
         match self
             .get_album(gallery_name, album_name)
-            .count_documents(doc!{"size": "s"}, None)
+            .count_documents(doc! {"size": "s"}, None)
             .await
         {
             Ok(len) => {
-                return len as u32;
+                return len as i64;
             }
             Err(_) => {
-                return 0;
+                return -1;
             }
         }
     }
@@ -182,6 +200,9 @@ impl MongoConnection {
         image_data: &Vec<u8>,
         image_size: &str,
     ) {
+        if !self.album_exists(gallery_name, album_name).await {
+            return;
+        }
         let album = self.get_album(gallery_name, album_name);
         match image_size {
             "x" | "s" | "m" | "l" => {}
@@ -225,13 +246,19 @@ impl MongoConnection {
     }
 
     pub async fn delete_image(&self, gallery_name: &str, album_name: &str, index: u32) {
+        if !self.album_exists(gallery_name, album_name).await {
+            return;
+        }
         let album = self.get_album(gallery_name, album_name);
         let update_doc = doc! {"$inc": {"index": -1}};
 
         match album.delete_many(doc! {"index": index}, None).await {
             Ok(del_res) => {
                 println!("{:?}", del_res);
-                match album.update_many(doc! {"index": {"$gt": index}}, update_doc, None).await {
+                match album
+                    .update_many(doc! {"index": {"$gt": index}}, update_doc, None)
+                    .await
+                {
                     Ok(update_res) => {
                         println!("{:?}", update_res);
                     }
@@ -240,6 +267,23 @@ impl MongoConnection {
             }
             Err(_) => {}
         }
-        
+    }
+
+    pub async fn create_album(&self, gallery_name: &str, album_name: &str) {
+        match self
+            .get_gallery(&gallery_name)
+            .create_collection(&album_name, None)
+            .await
+        {
+            Ok(_) => println!("Created album: {} in {}", album_name, gallery_name),
+            Err(e) => println!("{}", e),
+        }
+    }
+
+    pub async fn delete_album(&self, gallery_name: &str, album_name: &str) {
+        match self.get_album(&gallery_name, &album_name).drop(None).await {
+            Ok(_) => println!("Deleted album: {} in {}", album_name, gallery_name),
+            Err(e) => println!("{}", e),
+        }
     }
 }

@@ -45,7 +45,7 @@ async fn get_album_length(
     mongodb_connection: &State<MongoConnection>,
 ) -> String {
     if !is_public_gallery(gallery) {
-        return "0".to_owned();
+        return "-1".to_owned();
     }
     mongodb_connection
         .get_album_length(gallery, album)
@@ -115,7 +115,10 @@ async fn delete_image(
 ) {
     match jar.get("auth_token") {
         Some(token) => {
-            if mongodb_connection.is_admin_token(gallery, token.value()).await {
+            if mongodb_connection
+                .is_admin_token(gallery, token.value())
+                .await
+            {
                 mongodb_connection.delete_image(gallery, album, index).await;
             }
         }
@@ -133,7 +136,7 @@ async fn get_random_gallery_image(
     let album = album_list
         .get(rand::thread_rng().gen_range(0..album_list.len()))
         .unwrap();
-    let album_len = mongodb_connection.get_album_length(gallery, album).await;
+    let album_len = mongodb_connection.get_album_length(gallery, album).await as u32;
     let image_index = rand::thread_rng().gen_range(0..album_len);
     mongodb_connection
         .get_image_data(gallery, album, image_index, size)
@@ -161,6 +164,43 @@ async fn get_has_admin(
     return "false".to_owned();
 }
 
+#[post("/album?<gallery>&<album>")]
+async fn post_album(
+    gallery: &str,
+    album: &str,
+    jar: &CookieJar<'_>,
+    mongodb_connection: &State<MongoConnection>,
+) {
+    match jar.get("auth_token") {
+        Some(token) => {
+            if mongodb_connection
+                .is_admin_token(gallery, token.value())
+                .await
+            {
+                mongodb_connection.create_album(gallery, album).await;
+            }
+        }
+        None => {}
+    }
+}
+
+#[delete("/album?<gallery>&<album>")]
+async fn delete_album(
+    gallery: &str,
+    album: &str,
+    jar: &CookieJar<'_>,
+    mongodb_connection: &State<MongoConnection>,
+) {
+    match jar.get("auth_token") {
+        Some(token) => {
+            if mongodb_connection.is_admin_token(gallery, token.value()).await {
+                mongodb_connection.delete_album(gallery, album).await;
+            }
+        }
+        None => {}
+    }
+
+}
 
 #[launch]
 async fn rocket() -> _ {
@@ -191,7 +231,9 @@ async fn rocket() -> _ {
                 get_random_gallery_image,
                 get_has_admin,
                 post_image,
-                delete_image
+                delete_image,
+                delete_album,
+                post_album
             ],
         )
 }
