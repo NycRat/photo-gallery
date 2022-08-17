@@ -4,6 +4,7 @@ import {
   apiGetImage,
   apiGetAlbumLength,
   apiDeletePhoto,
+  apiDeleteAlbum,
 } from "../Api/ApiFunctions";
 import Image from "../Components/Image";
 import SubmitImagePopup from "../Components/SubmitImagePopup";
@@ -13,7 +14,7 @@ import NewPhoto from "../new_photo_icon.svg";
 const AlbumPage = (props: { hasAdminAccess: boolean }): JSX.Element => {
   const [images, setImages] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [albumLength, setAlbumLength] = useState<number>(0);
+  const [albumLength, setAlbumLength] = useState<number>(-1);
   const [loadedX, setLoadedX] = useState<boolean>(false);
   const [loadIndex, setLoadIndex] = useState<number>(0);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(-1);
@@ -30,7 +31,7 @@ const AlbumPage = (props: { hasAdminAccess: boolean }): JSX.Element => {
     }
     setImages([]);
     setIsLoading(true);
-    setAlbumLength(0);
+    setAlbumLength(-1);
     setLoadedX(false);
     setLoadIndex(0);
     setSelectedImageIndex(-1);
@@ -45,7 +46,7 @@ const AlbumPage = (props: { hasAdminAccess: boolean }): JSX.Element => {
   }, [albumName, galleryName]);
 
   useEffect(() => {
-    if (albumLength === 0 || !galleryName || !albumName) {
+    if (albumLength === -1 || !galleryName || !albumName) {
       return;
     }
     const fetchPhoto = async () => {
@@ -78,7 +79,7 @@ const AlbumPage = (props: { hasAdminAccess: boolean }): JSX.Element => {
   }, [albumLength, albumName, galleryName, images, loadIndex, loadedX]);
 
   useEffect(() => {
-    if (albumLength === 0 || !galleryName || !albumName) {
+    if (albumLength === -1 || !galleryName || !albumName) {
       return;
     }
     if (selectedImageIndex >= 0 && selectedImageIndex < images.length) {
@@ -133,16 +134,18 @@ const AlbumPage = (props: { hasAdminAccess: boolean }): JSX.Element => {
           !isLoading &&
           selectedImageIndex >= 0 &&
           selectedImageIndex < images.length &&
-          albumLength !== 0
+          albumLength !== -1
         ) && (
-          <button className="back-button" onClick={handleClickBackButton}>
-            Back
-          </button>
+          <div>
+            <button className="back-button" onClick={handleClickBackButton}>
+              Back
+            </button>
+          </div>
         )
       }
       {isLoading ? (
         <h1>Loading ...</h1>
-      ) : albumLength !== 0 ? (
+      ) : albumLength !== -1 ? (
         selectedImageIndex >= 0 && selectedImageIndex < images.length ? (
           <div>
             <div className="nav-cover" />
@@ -161,6 +164,10 @@ const AlbumPage = (props: { hasAdminAccess: boolean }): JSX.Element => {
               <button
                 className="delete-button"
                 onClick={async () => {
+                  if (!window.confirm("Delete Photo?")) {
+                    return;
+                  }
+                  
                   await apiDeletePhoto(
                     galleryName,
                     albumName,
@@ -182,6 +189,25 @@ const AlbumPage = (props: { hasAdminAccess: boolean }): JSX.Element => {
               <h1>Images</h1>
             ) : (
               <h1 className="title">{albumName}</h1>
+            )}
+            {props.hasAdminAccess && (
+              <button
+                className="delete-button"
+                onClick={async () => {
+                  let promptInput = prompt(`Enter the album name to confirm deletion. (${albumName})`);
+                  if (promptInput) {
+                    if (promptInput === albumName) {
+                      await apiDeleteAlbum(galleryName, albumName);
+                      handleClickBackButton();
+                      window.location.reload();
+                      return;
+                    }
+                  }
+                  alert("Album names did not match.");
+                }}
+              >
+                Delete
+              </button>
             )}
 
             {images.map((photo, i) => (

@@ -55,14 +55,45 @@ export const apiGetHasAdminAccess = async (gallery: string) => {
   return res.data;
 };
 
-export const apiPostPhoto = async (imageData: Uint8Array, gallery: string, album: string) => {
-  await axios.post(`${ServerURL}/image?gallery=${gallery}&album=${album}`, imageData, {
-    withCredentials: true,
-  });
+export const apiPostPhoto = async (
+  imageData: Uint8Array,
+  gallery: string,
+  album: string
+) => {
+  await axios.post(
+    `${ServerURL}/image?gallery=${gallery}&album=${album}`,
+    imageData,
+    {
+      withCredentials: true,
+    }
+  );
 };
 
-export const apiDeletePhoto = async (gallery: string, album: string, index: number) => {
-  await axios.delete(`${ServerURL}/image?gallery=${gallery}&album=${album}&index=${index}`, {
+export const apiDeletePhoto = async (
+  gallery: string,
+  album: string,
+  index: number
+) => {
+  await axios.delete(
+    `${ServerURL}/image?gallery=${gallery}&album=${album}&index=${index}`,
+    {
+      withCredentials: true,
+    }
+  );
+};
+
+export const apiPostAlbum = async (gallery: string, album: string) => {
+  await axios.post(
+    `${ServerURL}/album?gallery=${gallery}&album=${album}`,
+    {},
+    {
+      withCredentials: true,
+    }
+  );
+};
+
+export const apiDeleteAlbum = async (gallery: string, album: string) => {
+  await axios.delete(`${ServerURL}/album?gallery=${gallery}&album=${album}`, {
     withCredentials: true,
   });
 };

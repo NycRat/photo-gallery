@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { apiPostPhoto } from "../Api/ApiFunctions";
-import ImageSize from "../Models/ImageSize";
-import Image from "./Image";
 
 const SubmitImagePopup = (props: {
   gallery: string;
@@ -59,7 +57,10 @@ const SubmitImagePopup = (props: {
         <input type={"file"} onChange={updateFile} accept={".jpeg,.jpg"} />
         <br />
         <button
-          onClick={() => apiPostPhoto(photoData, props.gallery, props.album)}
+          onClick={async () => {
+            await apiPostPhoto(photoData, props.gallery, props.album)
+            window.location.reload();
+          }}
         >
           SUBMIT PHOTO
         </button>

@@ -7,6 +7,7 @@ import {
   apiGetAlbumLength,
   apiGetAlbumList,
   apiGetHasAdminAccess,
+  apiPostAlbum,
 } from "../Api/ApiFunctions";
 import { AlbumProps } from "../Models/AlbumProps";
 import ImageSize from "../Models/ImageSize";
@@ -20,6 +21,8 @@ const GalleryPage = (): JSX.Element => {
   const loadIndex = useRef<number>(0);
   const [hasAdminAccess, setHasAdminAccess] = useState<boolean>(false);
   const [gallery, setGallery] = useState<string>("");
+
+  const [newAlbumInput, setNewAlbumInput] = useState<string>("");
 
   const { galleryName } = useParams();
   const navigate = useNavigate();
@@ -108,6 +111,15 @@ const GalleryPage = (): JSX.Element => {
     fetchPreview();
   }, [loadedX, albumList, albumPreviews, gallery]);
 
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (newAlbumInput.trim() === "") {
+      return;
+    }
+    await apiPostAlbum(gallery, newAlbumInput);
+    window.location.reload();
+  };
+
   return (
     <Routes>
       <Route
@@ -125,6 +137,25 @@ const GalleryPage = (): JSX.Element => {
                 {albumPreviews.map((album, i) => (
                   <AlbumPreview key={i} {...album} />
                 ))}
+                {hasAdminAccess && (
+                  <div>
+                    <h1>New Album</h1>
+                    <form onSubmit={handleSubmit}>
+                      <input
+                        type={"text"}
+                        value={newAlbumInput}
+                        onChange={(e) => {
+                          setNewAlbumInput(e.currentTarget.value);
+                        }}
+                      />
+                      <input
+                        type={"submit"}
+                        value={"Create Album"}
+                        disabled={newAlbumInput === ""}
+                      />
+                    </form>
+                  </div>
+                )}
               </div>
             ) : (
               <h1>404 Gallery Not Found</h1>
