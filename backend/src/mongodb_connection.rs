@@ -185,8 +185,6 @@ impl MongoConnection {
                     .await;
                 self.post_image(gallery_name, album_name, &get_image_buffer(&image_m), "m", image_index)
                     .await;
-                self.post_image(gallery_name, album_name, &get_image_buffer(&image_l), "l", image_index)
-                    .await;
             }
             Err(_) => {
                 // image is not jpeg
@@ -208,7 +206,7 @@ impl MongoConnection {
         let album = self.get_album(gallery_name, album_name);
 
         match image_size {
-            "x" | "s" | "m" | "l" => {}
+            "x" | "s" | "m" => {}
             _ => {
                 return;
             }

@@ -1,5 +1,5 @@
 enum ImageSize {
-  x,s,m,l
+  x,s,m
 }
 
 export const imageSizeToString = (size: ImageSize): string => {
