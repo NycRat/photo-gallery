@@ -6,7 +6,9 @@ import {
   apiDeletePhoto,
 } from "../Api/ApiFunctions";
 import Image from "../Components/Image";
+import SubmitImagePopup from "../Components/SubmitImagePopup";
 import ImageSize from "../Models/ImageSize";
+import NewPhoto from "../new_photo_icon.svg";
 
 const AlbumPage = (props: { hasAdminAccess: boolean }): JSX.Element => {
   const [images, setImages] = useState<string[]>([]);
@@ -15,6 +17,7 @@ const AlbumPage = (props: { hasAdminAccess: boolean }): JSX.Element => {
   const [loadedX, setLoadedX] = useState<boolean>(false);
   const [loadIndex, setLoadIndex] = useState<number>(0);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(-1);
+  const [selectedNewImage, setSelectedNewImage] = useState<boolean>(false);
   const loadedMsList = useRef(new Set());
 
   const { galleryName, albumName } = useParams();
@@ -118,6 +121,10 @@ const AlbumPage = (props: { hasAdminAccess: boolean }): JSX.Element => {
     navigate(`/gallery/${galleryName}`);
   };
 
+  if (!galleryName || !albumName) {
+    return <h1>404 Album Not Found</h1>;
+  }
+
   return (
     <div className="album-page">
       {
@@ -153,12 +160,16 @@ const AlbumPage = (props: { hasAdminAccess: boolean }): JSX.Element => {
             {props.hasAdminAccess && (
               <button
                 className="delete-button"
-                onClick={() => {
-                  apiDeletePhoto(
-                    galleryName ?? "",
-                    albumName ?? "",
+                onClick={async () => {
+                  await apiDeletePhoto(
+                    galleryName,
+                    albumName,
                     selectedImageIndex
                   );
+                  let newImages = [...images];
+                  newImages.splice(selectedImageIndex, 1);
+                  setImages(newImages);
+                  setSelectedImageIndex(-1);
                 }}
               >
                 Delete
@@ -185,6 +196,21 @@ const AlbumPage = (props: { hasAdminAccess: boolean }): JSX.Element => {
                 }}
               />
             ))}
+            {props.hasAdminAccess && (
+              <img
+                className="new-image"
+                src={NewPhoto}
+                alt="new"
+                onClick={() => setSelectedNewImage(true)}
+              />
+            )}
+            {selectedNewImage && (
+              <SubmitImagePopup
+                gallery={galleryName}
+                album={albumName}
+                onExit={() => setSelectedNewImage(false)}
+              />
+            )}
           </div>
         )
       ) : (

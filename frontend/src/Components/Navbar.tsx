@@ -11,7 +11,6 @@ const Navbar = (): JSX.Element => {
         {/* <a href="/photo-gallery/#/gallery/albumDB" onClick={() => setDropdown(false)}>Albums</a> */}
         <a href="/photo-gallery/#/gallery/imageDB/album/images" onClick={() => setDropdown(false)}>Photos</a>
         <a href="/photo-gallery/#/admin" onClick={() => setDropdown(false)}>Admin</a>
-        <a href="/photo-gallery/#/submit" onClick={() => setDropdown(false)}>Submit Photos</a>
       </span>
       <button className="nav-dropdown-icon" onClick={() => setDropdown(!dropdown)}>
         ☰

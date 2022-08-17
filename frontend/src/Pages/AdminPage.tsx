@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useCookies } from "react-cookie";
 
 const AdminPage = (): JSX.Element => {
-  const tokenRef = useRef<string>("");
+  const [tokenInput , setTokenInput ]= useState<string>("");
   const [token, setToken] = useState<string>("");
   const [cookies, setCookies] = useCookies(["auth_token"]);
 
@@ -19,21 +19,29 @@ const AdminPage = (): JSX.Element => {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (tokenInput === "") {
+      return;
+    }
+    if (tokenInput.trim() === "") {
+      setToken("a");
+    } else {
+      setToken(tokenInput);
+    }
     alert("Entered Admin Token");
-    setToken(tokenRef.current);
+    setTokenInput("");
   }
 
   const handleChange = (e: React.FormEvent<HTMLInputElement>) => {
-    tokenRef.current = e.currentTarget.value;
+    setTokenInput(e.currentTarget.value);
   }
 
   return (
     <div>
       <h1>Admin Login</h1>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} >
         <label>Admin Token: </label>
-        <input type={"password"} onChange={handleChange} />
-        <input type={"submit"} value={"Enter"} />
+        <input type={"password"} onChange={handleChange} value={tokenInput} />
+        <input type={"submit"} value={"Enter"} disabled={tokenInput === ""} />
       </form>
     </div>
   );
