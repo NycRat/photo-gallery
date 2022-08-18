@@ -56,15 +56,7 @@ const GalleryPage = (): JSX.Element => {
     loadIndex.current = 0;
 
     const getAlbums = async () => {
-      const albumList = await apiGetAlbumList(galleryName);
-      for (let i = 0; i < albumList.length; i++) {
-        previewIndices.current.push(
-          Math.floor(
-            Math.random() * (await apiGetAlbumLength(galleryName, albumList[i]))
-          )
-        );
-      }
-      setAlbumList(albumList);
+      setAlbumList(await apiGetAlbumList(galleryName));
       setIsLoading(false);
     };
     getAlbums();
@@ -86,6 +78,14 @@ const GalleryPage = (): JSX.Element => {
         return;
       }
       const imageSize = !loadedX ? ImageSize.x : ImageSize.s;
+
+      if (!loadedX) {
+        previewIndices.current.push(
+          Math.floor(
+            Math.random() * (await apiGetAlbumLength(gallery, albumList[loadIndex.current]))
+          )
+        );
+      }
 
       const albumPreview = {
         name: albumList[index],
