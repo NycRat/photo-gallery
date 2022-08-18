@@ -11,7 +11,6 @@ extern crate rocket;
 mod mongodb_connection;
 
 struct AdminAuth(bool);
-
 #[rocket::async_trait]
 impl<'r> FromRequest<'r> for AdminAuth {
     type Error = ();

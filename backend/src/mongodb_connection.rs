@@ -41,7 +41,7 @@ impl MongoConnection {
     }
 
     pub fn get_gallery(&self, gallery_name: &str) -> mongodb::Database {
-        self.client.database(gallery_name)
+        self.client.database(gallery_name.replace(" ", "_").as_str())
     }
 
     pub fn get_album(&self, gallery_name: &str, album_name: &str) -> mongodb::Collection<Document> {
@@ -69,6 +69,9 @@ impl MongoConnection {
         match self.client.list_database_names(None, None).await {
             Ok(mut databases) => {
                 databases.retain(|db| is_valid_gallery(db));
+                for i in 0..databases.len() {
+                    databases[i] = databases[i].replace("_", " ");
+                }
                 databases
             }
             Err(_) => {
@@ -149,7 +152,7 @@ impl MongoConnection {
 
     async fn get_admin_token(&self, gallery_name: &str) -> String {
         let col = self.get_album("tokenDB", "tokens");
-        match col.find_one(doc! {"gallery": gallery_name}, None).await {
+        match col.find_one(doc! {"gallery": gallery_name.replace(" ", "_")}, None).await {
             Ok(doc) => {
                 if let Some(token_doc) = doc {
                     match token_doc.get_str("token") {
