@@ -59,10 +59,6 @@ const SubmitImagePopup = (props: {
     setPhotoDataArr(dataArr);
   };
 
-  useEffect(() => {
-    console.log(photoDataArr);
-  }, [photoDataArr]);
-
   return (
     <div className="woah">
       <div className="popup">

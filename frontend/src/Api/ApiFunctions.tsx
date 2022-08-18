@@ -40,13 +40,19 @@ export const apiGetImage = async (
   return res.data;
 };
 
-export const apiGetGalleryPreview = async (
-  galleryName: string
-): Promise<string> => {
-  const res = await axios.get(
-    `${ServerURL}/image_random?gallery=${galleryName}&size=s`
-  );
+export const apiGetRandomAlbum = async (gallery: string): Promise<string> => {
+  const res = await axios.get(`${ServerURL}/album_random?gallery=${gallery}`);
   return res.data;
+};
+
+export const apiGetRandomImageIndex = async (
+  gallery: string,
+  album: string
+): Promise<number> => {
+  const res = await axios.get(
+    `${ServerURL}/image_index_random?gallery=${gallery}&album=${album}`
+  );
+  return parseInt(res.data);
 };
 
 export const apiGetHasAdminAccess = async (gallery: string) => {

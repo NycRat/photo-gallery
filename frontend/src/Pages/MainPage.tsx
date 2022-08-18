@@ -1,10 +1,20 @@
-import { useEffect, useState } from "react";
-import { apiGetGalleryList, apiGetGalleryPreview } from "../Api/ApiFunctions";
+import { useEffect, useRef, useState } from "react";
+import {
+  apiGetGalleryList,
+  apiGetImage,
+  apiGetRandomAlbum,
+  apiGetRandomImageIndex,
+} from "../Api/ApiFunctions";
 import GalleryPreview from "../Components/GalleryPreview";
+import ImageSize from "../Models/ImageSize";
 
 const MainPage = (): JSX.Element => {
   const [galleryList, setGalleries] = useState<string[]>([]);
+  const previewAlbums = useRef<string[]>([]);
+  const previewIndices = useRef<number[]>([]);
   const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
+  const [loadedX, setLoadedX] = useState<boolean>(false);
+  const loadIndex = useRef<number>(0);
 
   useEffect(() => {
     const fetchGalleries = async () => {
@@ -15,18 +25,44 @@ const MainPage = (): JSX.Element => {
   }, []);
 
   useEffect(() => {
-    if (galleryPreviews.length >= galleryList.length) {
+    if (galleryList.length === 0) {
+      return;
+    }
+    if (loadIndex.current >= galleryList.length) {
+      if (!loadedX) {
+        setLoadedX(true);
+        loadIndex.current = 0;
+      }
       return;
     }
     const fetchPreview = async () => {
-      let newPreviews = [...galleryPreviews];
-      newPreviews.push(
-        await apiGetGalleryPreview(galleryList[galleryPreviews.length])
-      );
-      setGalleryPreviews(newPreviews);
+      let gallery = galleryList[loadIndex.current];
+      if (loadedX) {
+        let imageSize = ImageSize.s;
+        let preview = await apiGetImage(
+          gallery,
+          previewAlbums.current[loadIndex.current],
+          previewIndices.current[loadIndex.current],
+          imageSize
+        );
+
+        let newPreviews = [...galleryPreviews];
+        newPreviews[loadIndex.current] = preview;
+        setGalleryPreviews(newPreviews);
+      } else {
+        let album = await apiGetRandomAlbum(gallery);
+        let index = await apiGetRandomImageIndex(gallery, album);
+        let imageSize = ImageSize.x;
+        let preview = await apiGetImage(gallery, album, index, imageSize);
+        previewIndices.current.push(index);
+        previewAlbums.current.push(album);
+
+        setGalleryPreviews([...galleryPreviews, preview]);
+      }
+      loadIndex.current++;
     };
     fetchPreview();
-  }, [galleryList, galleryPreviews]);
+  }, [galleryList, galleryPreviews, loadedX]);
 
   return galleryList.length === 0 ? (
     <h1>Loading ...</h1>

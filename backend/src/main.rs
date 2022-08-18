@@ -150,22 +150,24 @@ async fn delete_image(
     }
 }
 
-#[get("/image_random?<gallery>&<size>")]
-async fn get_random_gallery_image(
+#[get("/image_index_random?<gallery>&<album>")]
+async fn get_random_image_index(
     gallery: &str,
-    size: &str,
+    album: &str,
     mongodb_connection: &State<MongoConnection>,
 ) -> String {
+    let album_length = mongodb_connection.get_album_length(gallery, album).await;
+    if album_length <= 1 {
+        return "0".to_owned();
+    }
+    rand::thread_rng().gen_range(0..album_length).to_string()
+}
+
+#[get("/album_random?<gallery>")]
+async fn get_random_album(gallery: &str, mongodb_connection: &State<MongoConnection>) -> String {
     let album_list = mongodb_connection.get_album_list(gallery).await;
-    let album = album_list
-        .get(rand::thread_rng().gen_range(0..album_list.len()))
-        .unwrap();
-    let album_len = mongodb_connection.get_album_length(gallery, album).await as u32;
-    let image_index = rand::thread_rng().gen_range(0..album_len);
-    mongodb_connection
-        .get_image_data(gallery, album, image_index, size)
-        .await
-        .unwrap()
+    let index = rand::thread_rng().gen_range(0..album_list.len());
+    album_list[index].clone()
 }
 
 #[get("/has_admin?<gallery>")]
@@ -226,12 +228,13 @@ async fn rocket() -> _ {
                 get_album_list,
                 get_album_length,
                 get_image,
-                get_random_gallery_image,
                 get_has_admin,
                 post_image,
                 delete_image,
                 delete_album,
-                post_album
+                post_album,
+                get_random_album,
+                get_random_image_index
             ],
         )
 }
