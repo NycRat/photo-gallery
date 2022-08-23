@@ -37,12 +37,6 @@ const GalleryPage = (): JSX.Element => {
     fetchAdminAccess();
   }, [galleryName]);
 
-  // useEffect(() => {
-  //   if (hasAdminAccess) {
-  //     alert("You have admin access to this gallery");
-  //   }
-  // }, [hasAdminAccess]);
-
   useEffect(() => {
     if (!galleryName) {
       return;
@@ -82,7 +76,8 @@ const GalleryPage = (): JSX.Element => {
       if (!loadedX) {
         previewIndices.current.push(
           Math.floor(
-            Math.random() * (await apiGetAlbumLength(gallery, albumList[loadIndex.current]))
+            Math.random() *
+              (await apiGetAlbumLength(gallery, albumList[loadIndex.current]))
           )
         );
       }
@@ -126,9 +121,9 @@ const GalleryPage = (): JSX.Element => {
         path="/"
         element={
           <div>
-            <button className="back-button" onClick={() => navigate(`/`)}>
+            <span className="back-button" onClick={() => navigate(`/`)}>
               Back
-            </button>
+            </span>
             {isLoading ? (
               <h1>Loading ...</h1>
             ) : albumList.length !== 0 ? (

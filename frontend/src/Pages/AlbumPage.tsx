@@ -10,6 +10,7 @@ import Image from "../Components/Image";
 import SubmitImagePopup from "../Components/SubmitImagePopup";
 import ImageSize from "../Models/ImageSize";
 import NewPhoto from "../new_photo_icon.svg";
+import ImagePage from "./ImagePage";
 
 const AlbumPage = (props: { hasAdminAccess: boolean }): JSX.Element => {
   const [images, setImages] = useState<string[]>([]);
@@ -112,19 +113,29 @@ const AlbumPage = (props: { hasAdminAccess: boolean }): JSX.Element => {
     selectedImageIndex,
   ]);
 
+  if (!galleryName || !albumName) {
+    return <h1>404 Album Not Found</h1>;
+  }
+
   const handleClickBackButton = () => {
-    if (galleryName) {
-      if (galleryName === "imageDB") {
-        navigate(`/`);
-        return;
-      }
+    if (galleryName === "imageDB") {
+      navigate(`/`);
+      return;
     }
     navigate(`/gallery/${galleryName}`);
   };
 
-  if (!galleryName || !albumName) {
-    return <h1>404 Album Not Found</h1>;
-  }
+  const handleDeleteImage = async () => {
+    if (!window.confirm("Delete Photo?")) {
+      return;
+    }
+
+    await apiDeletePhoto(galleryName, albumName, selectedImageIndex);
+    let newImages = [...images];
+    newImages.splice(selectedImageIndex, 1);
+    setImages(newImages);
+    setSelectedImageIndex(-1);
+  };
 
   return (
     <div className="album-page">
@@ -137,9 +148,9 @@ const AlbumPage = (props: { hasAdminAccess: boolean }): JSX.Element => {
           albumLength !== -1
         ) && (
           <div>
-            <button className="back-button" onClick={handleClickBackButton}>
+            <span className="back-button" onClick={handleClickBackButton}>
               Back
-            </button>
+            </span>
           </div>
         )
       }
@@ -147,42 +158,12 @@ const AlbumPage = (props: { hasAdminAccess: boolean }): JSX.Element => {
         <h1>Loading ...</h1>
       ) : albumLength !== -1 ? (
         selectedImageIndex >= 0 && selectedImageIndex < images.length ? (
-          <div>
-            <div className="nav-cover" />
-            <Image
-              key={selectedImageIndex}
-              src={images[selectedImageIndex]}
-              size={ImageSize.m}
-            />
-            <button
-              className="back-button"
-              onClick={() => setSelectedImageIndex(-1)}
-            >
-              {"Back"}
-            </button>
-            {props.hasAdminAccess && (
-              <button
-                className="delete-button"
-                onClick={async () => {
-                  if (!window.confirm("Delete Photo?")) {
-                    return;
-                  }
-                  
-                  await apiDeletePhoto(
-                    galleryName,
-                    albumName,
-                    selectedImageIndex
-                  );
-                  let newImages = [...images];
-                  newImages.splice(selectedImageIndex, 1);
-                  setImages(newImages);
-                  setSelectedImageIndex(-1);
-                }}
-              >
-                Delete
-              </button>
-            )}
-          </div>
+          <ImagePage
+            src={images[selectedImageIndex]}
+            hasAdminAccess={props.hasAdminAccess}
+            handleBackButton={() => setSelectedImageIndex(-1)}
+            handleImageDelete={handleDeleteImage}
+          />
         ) : (
           <div>
             {galleryName === "imageDB" ? (
@@ -191,10 +172,12 @@ const AlbumPage = (props: { hasAdminAccess: boolean }): JSX.Element => {
               <h1 className="title">{albumName}</h1>
             )}
             {props.hasAdminAccess && (
-              <button
+              <span
                 className="delete-button"
                 onClick={async () => {
-                  let promptInput = prompt(`Enter the album name to confirm deletion. (${albumName})`);
+                  let promptInput = prompt(
+                    `Enter the album name to confirm deletion. (${albumName})`
+                  );
                   if (promptInput) {
                     if (promptInput === albumName) {
                       await apiDeleteAlbum(galleryName, albumName);
@@ -207,7 +190,7 @@ const AlbumPage = (props: { hasAdminAccess: boolean }): JSX.Element => {
                 }}
               >
                 Delete
-              </button>
+              </span>
             )}
 
             {images.map((photo, i) => (

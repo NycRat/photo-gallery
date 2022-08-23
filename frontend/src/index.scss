@@ -1,5 +1,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Raleway&display=swap");
 
+$navbar-color: #1a1a1a;
+
 html,
 body,
 #root {
@@ -8,6 +10,10 @@ body,
   padding: 0;
   margin: 0;
   font-family: "Raleway", sans-serif;
+  background-color: black;
+  background-image: linear-gradient(to bottom right, #2c0e32 20%, #444444 100%);
+  color: white;
+  overflow-x: hidden;
 }
 
 .app {
@@ -26,8 +32,7 @@ body,
 
 .navbar {
   padding: 10px 0px;
-  background-color: #e5e5e5;
-  border-bottom: 1px solid #b8b5ba;
+  background-color: $navbar-color;
   height: 30px;
   width: 100%;
   .nav-dropdown-icon {
@@ -36,7 +41,7 @@ body,
     height: 40px;
   }
   a {
-    color: black;
+    color: #d4edff;
     text-decoration: none;
     font-size: 24px;
     margin: 0px 18px;
@@ -76,43 +81,100 @@ body,
 }
 
 .gallery-preview {
-  display: inline-block;
-  margin: 20px;
-  padding: min(20px, 1vw);
-  padding-top: 10px;
-  border: 1px solid #ccc;
-  border-radius: 10px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+
   cursor: pointer;
-  max-width: 90%;
-  box-shadow: 4px 6px 8px 2px #000000cc;
-  .s {
-    width: min(80vw, 1000px);
-    max-width: min(75vw, 1000px);
-    max-height: min(75vw, 1000px);
-    box-shadow: none;
-    &:hover {
-      box-shadow: none;
+  width: 100%;
+  height: calc(100vh / 3 - 50px / 3);
+  margin: 0;
+  padding: 0;
+
+  background-color: black;
+
+  .title {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -100%);
+    color: white;
+    white-space: nowrap;
+    text-shadow: 2px 1.5px #000000;
+    transition: all 0.5s;
+
+    font-size: 50px;
+    @media only screen and (max-width: 600px) {
+      font-size: calc(38px + 2vw);
     }
   }
-  transition: box-shadow 0.2s;
   &:hover {
-    box-shadow: 8px 12px 10px 3px #000000cc;
+    .title {
+      font-size: 60px;
+      text-shadow: 3px 3px #000000;
+      @media only screen and (max-width: 600px) {
+        font-size: calc(48px + 2vw);
+      }
+    }
+  }
+
+  .image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    max-width: none;
+    max-height: none;
   }
 }
 
 .album-preview {
+  position: relative;
   display: inline-block;
-  margin: 20px;
-  padding: min(20px, 1vw);
-  padding-top: 10px;
-  border: 1px solid #ccc;
-  border-radius: 10px;
   cursor: pointer;
-  max-width: 80%;
-  box-shadow: 4px 6px 6px 1px #000000cc;
-  transition: box-shadow 0.2s;
+  width: calc(100vw / 3 - 100px / 3);
+  margin: 0 5px;
+  margin-bottom: 5px;
+
+  padding: 0;
+  border: none;
+
+  .image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    max-width: none;
+    max-height: none;
+    border-radius: 10px;
+    border: 1px solid #dddddd;
+  }
+
+  .title {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -100%);
+    color: white;
+    white-space: nowrap;
+    text-shadow: 2px 1.5px #000000;
+    transition: all 0.5s;
+
+    font-size: calc(25px + 1vw);
+  }
   &:hover {
-    box-shadow: 6px 10px 10px 2px #000000cc;
+    .title {
+      font-size: calc(30px + 1vw);
+      text-shadow: 3px 3px #000000;
+    }
+  }
+
+  @media only screen and (max-width: 1200px) {
+    width: calc(100vw / 2 - 40px / 2);
+  }
+
+  @media only screen and (max-width: 800px) {
+    width: calc(100vw - 40px);
   }
 }
 
@@ -124,6 +186,45 @@ body,
   // min-height: 100vh;
   display: flex;
   justify-content: center;
+
+  .image {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    width: calc(100vw / 3 - 100px / 3);
+    margin: 0 5px;
+    margin-bottom: 5px;
+    padding: 0;
+    border: none;
+
+    object-fit: cover;
+    max-width: none;
+    max-height: none;
+    border-radius: 10px;
+    border: 1px solid #dddddd;
+
+    @media only screen and (max-width: 1200px) {
+      width: calc(100vw / 2 - 40px);
+    }
+
+    @media only screen and (max-width: 800px) {
+      width: calc(100vw - 60px);
+    }
+  }
+}
+
+.image-page {
+  height: calc(100vh - 50px);
+  .image {
+    width: 100%;
+    border-radius: 0;
+    padding: 0;
+    max-width: 95%;
+    max-height: calc(98vh - 100px);
+    margin: auto;
+    margin-top: 50px;
+    cursor: default;
+  }
 }
 
 .nav-cover {
@@ -136,33 +237,35 @@ body,
 }
 
 .back-button {
+  background-color: #92aa52;
+  color: white;
   position: absolute;
-  top: 2px;
-  left: 10px;
-  padding: 10px;
+  top: 0;
+  left: 0;
+  padding: 14.5px;
+  padding-left: 20px;
+  background-image: linear-gradient(to right, #6e6e6e, $navbar-color);
   font-size: 18px;
-  height: 46px;
   font-family: "Raleway", sans-serif;
   cursor: pointer;
+
+  padding-right: 50px;
+  transition: all 0.4s;
+  &:hover {
+    padding-right: 100px;
+  }
 }
 
 .delete-button {
-  position: absolute;
-  top: 52px;
-  left: 10px;
-  padding: 10px;
-  font-size: 18px;
-  height: 46px;
-  font-family: "Raleway", sans-serif;
-  cursor: pointer;
+  @extend .back-button;
+  top: 50px;
+  &:hover {
+    padding-right: 50px;
+  }
 }
 
 .image {
   display: inline-block;
-  margin: min(20px, 1vw);
-  border: 2px solid #ccc;
-  border-radius: 10px;
-  cursor: pointer;
 }
 
 .x {
@@ -175,12 +278,6 @@ body,
   width: min(75vw, 500px);
   max-width: min(75vw, 500px);
   max-height: min(75vw, 500px);
-
-  box-shadow: 4px 4px 6px 1px #000000cc;
-  transition: box-shadow 0.2s;
-  &:hover {
-    box-shadow: 6px 8px 8px 2px #000000cc;
-  }
 }
 
 .m {
@@ -257,7 +354,7 @@ body,
   }
   button {
     margin-top: 10px;
-  } 
+  }
 
   .exit-button {
     position: fixed;
