@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use mongodb_connection::{is_public_gallery, is_valid_gallery, MongoConnection};
 use rand::Rng;
 use rocket::data::ToByteUnit;
@@ -202,6 +204,11 @@ async fn delete_album(
     }
 }
 
+#[options("/<path..>")]
+async fn options_route(path: PathBuf) -> &'static str {
+    ""
+}
+
 #[launch]
 async fn rocket() -> _ {
     let mongodb_connection = MongoConnection::init().await;
@@ -211,7 +218,7 @@ async fn rocket() -> _ {
     let cors = CorsOptions::default()
         .allowed_origins(AllowedOrigins::all())
         .allowed_methods(
-            vec![Method::Get, Method::Post, Method::Delete]
+            vec![Method::Get, Method::Post, Method::Delete, Method::Options]
                 .into_iter()
                 .map(From::from)
                 .collect(),
@@ -234,7 +241,8 @@ async fn rocket() -> _ {
                 delete_album,
                 post_album,
                 get_random_album,
-                get_random_image_index
+                get_random_image_index,
+                options_route
             ],
         )
 }
