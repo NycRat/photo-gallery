@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Route, Routes, useNavigate, useParams } from "react-router-dom";
 import {
   apiGetImage,
   apiGetAlbumLength,
@@ -138,94 +138,112 @@ const AlbumPage = (props: { hasAdminAccess: boolean }): JSX.Element => {
   };
 
   return (
-    <div className="album-page">
-      {
-        // this is the most cancer code i have seen
-        !(
-          !isLoading &&
-          selectedImageIndex >= 0 &&
-          selectedImageIndex < images.length &&
-          albumLength !== -1
-        ) && (
-          <div>
-            <span className="back-button" onClick={handleClickBackButton}>
-              Back
-            </span>
+    <Routes>
+      <Route
+        path="/"
+        element={
+          <div className="album-page">
+            {
+              // this is the most cancer code i have seen
+              !(
+                !isLoading &&
+                selectedImageIndex >= 0 &&
+                selectedImageIndex < images.length &&
+                albumLength !== -1
+              ) && (
+                <div>
+                  <span className="back-button" onClick={handleClickBackButton}>
+                    Back
+                  </span>
+                </div>
+              )
+            }
+            {isLoading ? (
+              <h1>Loading ...</h1>
+            ) : albumLength !== -1 ? (
+              <div>
+                {galleryName === "imageDB" ? (
+                  <h1>Images</h1>
+                ) : (
+                  <h1 className="title">{albumName}</h1>
+                )}
+                {props.hasAdminAccess && (
+                  <span
+                    className="delete-button"
+                    onClick={async () => {
+                      let promptInput = prompt(
+                        `Enter the album name to confirm deletion. (${albumName})`
+                      );
+                      if (promptInput) {
+                        if (promptInput === albumName) {
+                          await apiDeleteAlbum(galleryName, albumName);
+                          handleClickBackButton();
+                          window.location.reload();
+                          return;
+                        }
+                      }
+                      alert("Album names did not match.");
+                    }}
+                  >
+                    Delete
+                  </span>
+                )}
+
+                {images.map((photo, i) => (
+                  <Image
+                    key={i}
+                    src={photo}
+                    size={ImageSize.s}
+                    onClick={() => {
+                      if (loadedX && loadIndex >= albumLength) {
+                        setSelectedImageIndex(i);
+                        navigate(
+                          `/gallery/${galleryName}/album/${albumName}/image/${i}`
+                        );
+                      }
+                    }}
+                  />
+                ))}
+                {props.hasAdminAccess && (
+                  <img
+                    className="new-image"
+                    src={NewPhoto}
+                    alt="new"
+                    onClick={() => setSelectedNewImage(true)}
+                  />
+                )}
+                {selectedNewImage && (
+                  <SubmitImagePopup
+                    gallery={galleryName}
+                    album={albumName}
+                    onExit={() => setSelectedNewImage(false)}
+                  />
+                )}
+              </div>
+            ) : (
+              <h1>404 Album Not Found</h1>
+            )}
           </div>
-        )
-      }
-      {isLoading ? (
-        <h1>Loading ...</h1>
-      ) : albumLength !== -1 ? (
-        selectedImageIndex >= 0 && selectedImageIndex < images.length ? (
+        }
+      />
+      <Route
+        path="/image/:index"
+        element={
           <ImagePage
-            src={images[selectedImageIndex]}
+            src={
+              selectedImageIndex === -1 ? undefined : images[selectedImageIndex]
+            }
             hasAdminAccess={props.hasAdminAccess}
-            handleBackButton={() => setSelectedImageIndex(-1)}
+            handleBackButton={() => {
+              setSelectedImageIndex(-1);
+              navigate(`/gallery/${galleryName}/album/${albumName}`);
+            }}
             handleImageDelete={handleDeleteImage}
           />
-        ) : (
-          <div>
-            {galleryName === "imageDB" ? (
-              <h1>Images</h1>
-            ) : (
-              <h1 className="title">{albumName}</h1>
-            )}
-            {props.hasAdminAccess && (
-              <span
-                className="delete-button"
-                onClick={async () => {
-                  let promptInput = prompt(
-                    `Enter the album name to confirm deletion. (${albumName})`
-                  );
-                  if (promptInput) {
-                    if (promptInput === albumName) {
-                      await apiDeleteAlbum(galleryName, albumName);
-                      handleClickBackButton();
-                      window.location.reload();
-                      return;
-                    }
-                  }
-                  alert("Album names did not match.");
-                }}
-              >
-                Delete
-              </span>
-            )}
-
-            {images.map((photo, i) => (
-              <Image
-                key={i}
-                src={photo}
-                size={ImageSize.s}
-                onClick={() => {
-                  if (loadedX && loadIndex >= albumLength) {
-                    setSelectedImageIndex(i);
-                  }
-                }}
-              />
-            ))}
-            {props.hasAdminAccess && (
-              <img
-                className="new-image"
-                src={NewPhoto}
-                alt="new"
-                onClick={() => setSelectedNewImage(true)}
-              />
-            )}
-            {selectedNewImage && (
-              <SubmitImagePopup
-                gallery={galleryName}
-                album={albumName}
-                onExit={() => setSelectedNewImage(false)}
-              />
-            )}
-          </div>
-        )
-      ) : (
-        <h1>404 Album Not Found</h1>
-      )}
-    </div>
+        }
+      />
+      <Route path="*" element={<h1>404 Page not found</h1>} />
+    </Routes>
   );
 };
 

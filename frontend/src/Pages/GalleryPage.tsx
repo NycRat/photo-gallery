@@ -159,7 +159,7 @@ const GalleryPage = (): JSX.Element => {
         }
       />
       <Route
-        path="/album/:albumName"
+        path="/album/:albumName/*"
         element={<AlbumPage hasAdminAccess={hasAdminAccess} />}
       />
       <Route path="*" element={<div>404 Page Not Found</div>} />

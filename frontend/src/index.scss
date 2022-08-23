@@ -215,14 +215,15 @@ body,
 
 .image-page {
   height: calc(100vh - 50px);
+  width: 100%;
   .image {
-    width: 100%;
+    width: auto;
     border-radius: 0;
     padding: 0;
-    max-width: 95%;
+    max-width: 95vw;
     max-height: calc(98vh - 100px);
     margin: auto;
-    margin-top: 50px;
+    margin-top: 30px;
     cursor: default;
   }
 }
@@ -281,17 +282,17 @@ body,
 }
 
 .m {
-  border-radius: 0;
-  padding: 0;
-  max-width: 95%;
-  max-height: 95%;
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  margin: auto;
-  cursor: default;
+  // border-radius: 0;
+  // padding: 0;
+  // max-width: 95%;
+  // max-height: 95%;
+  // position: absolute;
+  // top: 0;
+  // bottom: 0;
+  // left: 0;
+  // right: 0;
+  // margin: auto;
+  // cursor: default;
 }
 
 .new-image {

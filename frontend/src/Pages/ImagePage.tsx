@@ -32,7 +32,7 @@ const ImagePage = (props: {
           )
         );
         if (loadingSize !== ImageSize.m) {
-          setLoadingSize(loadingSize+1);
+          setLoadingSize(loadingSize + 1);
         }
       }
     };
@@ -40,16 +40,18 @@ const ImagePage = (props: {
   }, [albumName, galleryName, index, loadingSize, props.src]);
 
   return (
-    <div className="image-page">
-      <span className="back-button" onClick={props.handleBackButton}>
-        Back
-      </span>
-      {props.hasAdminAccess && (
-        <span className="delete-button" onClick={props.handleImageDelete}>
-          Delete
+    <div className="album-page">
+      <div className="image-page">
+        <span className="back-button" onClick={props.handleBackButton}>
+          Back
         </span>
-      )}
-      <Image src={imageData} size={ImageSize.m} />
+        {props.hasAdminAccess && (
+          <span className="delete-button" onClick={props.handleImageDelete}>
+            Delete
+          </span>
+        )}
+        <Image src={imageData} size={ImageSize.m} />
+      </div>
     </div>
   );
 };
