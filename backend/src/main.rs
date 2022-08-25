@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use mongodb_connection::{is_public_gallery, is_valid_gallery, MongoConnection};
+use mongodb_connection::MongoConnection;
 use rand::Rng;
 use rocket::data::ToByteUnit;
 use rocket::request::{FromRequest, Outcome};
@@ -73,9 +73,6 @@ async fn get_album_list(
     gallery: &str,
     mut_mongodb_connection: &State<Mutex<MongoConnection>>,
 ) -> String {
-    if !is_valid_gallery(gallery) {
-        return "".to_owned();
-    }
     let mongodb_connection = mut_mongodb_connection.lock().await;
     let albums = mongodb_connection.get_album_list(gallery).await;
     let mut res = String::new();
@@ -94,9 +91,6 @@ async fn get_album_length(
     album: &str,
     mut_mongodb_connection: &State<Mutex<MongoConnection>>,
 ) -> String {
-    if !is_public_gallery(gallery) {
-        return "-1".to_owned();
-    }
     let mongodb_connection = mut_mongodb_connection.lock().await;
     mongodb_connection
         .get_album_length(gallery, album)
@@ -112,9 +106,6 @@ async fn get_image(
     size: &str,
     mut_mongodb_connection: &State<Mutex<MongoConnection>>,
 ) -> String {
-    if !is_public_gallery(gallery) {
-        return "".to_owned();
-    }
     let mongodb_connection = mut_mongodb_connection.lock().await;
     match mongodb_connection
         .get_image_data(gallery, album, index, size)

@@ -40,7 +40,7 @@ impl MongoConnection {
         let gallery_list;
         match client.list_database_names(None, None).await {
             Ok(mut databases) => {
-                databases.retain(|db| is_valid_gallery(db));
+                databases.retain(|db| is_public_gallery(db));
                 for i in 0..databases.len() {
                     databases[i] = databases[i].replace("_", " ");
                 }
@@ -110,7 +110,9 @@ impl MongoConnection {
         let mut gallery_list: Vec<String> = vec![];
 
         for gallery in &self.galleries {
-            gallery_list.push(gallery.0.to_string());
+            if is_valid_gallery(gallery.0) {
+                gallery_list.push(gallery.0.to_owned());
+            }
         }
 
         return gallery_list;
@@ -123,6 +125,9 @@ impl MongoConnection {
         image_index: u32,
         image_size: &str,
     ) -> Result<String, String> {
+        if !is_public_gallery(gallery_name) {
+            return Ok("".to_owned());
+        }
         let album = self.get_album(gallery_name, album_name);
 
         let doc = match album
@@ -151,6 +156,9 @@ impl MongoConnection {
     }
 
     pub async fn get_album_list(&self, gallery_name: &str) -> Vec<String> {
+        if !is_valid_gallery(gallery_name) {
+            return vec![];
+        }
         if let Some(gallery) = self.galleries.get(gallery_name) {
             let mut album_list: Vec<String> = vec![];
 
@@ -165,6 +173,9 @@ impl MongoConnection {
     }
 
     pub async fn get_album_length(&self, gallery_name: &str, album_name: &str) -> i64 {
+        if !is_public_gallery(gallery_name) {
+            return -1;
+        }
         if let Some(gallery) = self.galleries.get(gallery_name) {
             if let Some(album_length) = gallery.get(album_name) {
                 return *album_length as i64;
