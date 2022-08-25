@@ -23,6 +23,8 @@ button {
 .app {
   width: 100%;
   height: 100%;
+
+  padding-top: 50px;
   text-align: center;
   user-select: none;
 }
@@ -35,6 +37,12 @@ button {
 }
 
 .navbar {
+  position: fixed;
+  right: 0;
+  top: 0;
+
+  z-index: 1;
+
   padding: 10px 0px;
   background-color: $navbar-color;
   height: 30px;
@@ -262,6 +270,8 @@ button {
   background-color: #92aa52;
   color: white;
   position: absolute;
+  position: fixed;
+  z-index: 2;
   top: 0;
   left: 0;
   padding: 14.5px;
@@ -269,6 +279,7 @@ button {
   background-image: linear-gradient(to right, #6e6e6e, $navbar-color);
   font-size: 18px;
   cursor: pointer;
+  max-height: 50px;
 
   padding-right: 50px;
   transition: all 0.4s;

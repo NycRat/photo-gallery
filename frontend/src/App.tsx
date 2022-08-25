@@ -1,5 +1,4 @@
 import { HashRouter, Route, Routes } from "react-router-dom";
-import GalleryPage from "./Pages/GalleryPage";
 import MainPage from "./Pages/MainPage";
 import Navbar from "./Components/Navbar";
 import AdminPage from "./Pages/AdminPage";
