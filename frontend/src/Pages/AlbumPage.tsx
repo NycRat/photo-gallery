@@ -15,7 +15,7 @@ import ImagePage from "./ImagePage";
 const AlbumPage = (props: { hasAdminAccess: boolean }): JSX.Element => {
   const [images, setImages] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [albumLength, setAlbumLength] = useState<number>(-1);
+  const [albumLength, setAlbumLength] = useState<number>(0);
   const [loadedX, setLoadedX] = useState<boolean>(false);
   const [loadIndex, setLoadIndex] = useState<number>(0);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(-1);
@@ -32,7 +32,7 @@ const AlbumPage = (props: { hasAdminAccess: boolean }): JSX.Element => {
     }
     setImages([]);
     setIsLoading(true);
-    setAlbumLength(-1);
+    setAlbumLength(0);
     setLoadedX(false);
     setLoadIndex(0);
     setSelectedImageIndex(-1);
@@ -42,12 +42,18 @@ const AlbumPage = (props: { hasAdminAccess: boolean }): JSX.Element => {
       let len = await apiGetAlbumLength(galleryName, albumName);
       setAlbumLength(len);
       setIsLoading(false);
+
+      let images: string[] = [];
+      for (let i = 0; i < len; i++) {
+        images.push("");
+      }
+      setImages(images);
     };
     getAlbumLen();
   }, [albumName, galleryName]);
 
   useEffect(() => {
-    if (albumLength === -1 || !galleryName || !albumName) {
+    if (albumLength <= 0 || !galleryName || !albumName) {
       return;
     }
     const fetchPhoto = async () => {
@@ -66,13 +72,10 @@ const AlbumPage = (props: { hasAdminAccess: boolean }): JSX.Element => {
         loadIndex,
         imageSize
       );
-      if (loadIndex < albumLength) {
-        let newImages = [...images];
-        newImages[loadIndex] = image;
-        setImages(newImages);
-      } else {
-        setImages([...images, image]);
-      }
+      let newImages = [...images];
+      newImages[loadIndex] = image;
+      setImages(newImages);
+
       setLoadIndex(loadIndex + 1);
     };
 
@@ -80,7 +83,7 @@ const AlbumPage = (props: { hasAdminAccess: boolean }): JSX.Element => {
   }, [albumLength, albumName, galleryName, images, loadIndex, loadedX]);
 
   useEffect(() => {
-    if (albumLength === -1 || !galleryName || !albumName) {
+    if (albumLength <= 0 || !galleryName || !albumName) {
       return;
     }
     if (selectedImageIndex >= 0 && selectedImageIndex < images.length) {

@@ -6,7 +6,7 @@ import Image from "./Image";
 const AlbumPreview = (props: AlbumProps): JSX.Element => {
   const navigate = useNavigate();
 
-  const {galleryName} = useParams();
+  const { galleryName } = useParams();
 
   return (
     <div
@@ -16,7 +16,10 @@ const AlbumPreview = (props: AlbumProps): JSX.Element => {
       }}
     >
       <h1 className="title">{props.name}</h1>
-      {props.images.length !== 0 && <Image src={props.images[0]} size={ImageSize.x} />}
+      <Image
+        src={props.images[0]}
+        size={ImageSize.x}
+      />
     </div>
   );
 };

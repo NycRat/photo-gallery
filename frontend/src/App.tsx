@@ -11,10 +11,8 @@ const App = (): JSX.Element => {
       <Navbar />
       <HashRouter>
         <Routes>
-          <Route path="/" element={<MainPage />} />
-          <Route path="/gallery/:galleryName/*" element={<GalleryPage />} />
           <Route path="/admin/*" element={<AdminPage />} />
-          <Route path="*" element={<div>404 Page Not Found</div>} />
+          <Route path="*" element={<MainPage />} />
         </Routes>
       </HashRouter>
     </div>

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Route, Routes } from "react-router-dom";
 import {
   apiGetGalleryList,
   apiGetImage,
@@ -7,6 +8,7 @@ import {
 } from "../Api/ApiFunctions";
 import GalleryPreview from "../Components/GalleryPreview";
 import ImageSize from "../Models/ImageSize";
+import GalleryPage from "./GalleryPage";
 
 const MainPage = (): JSX.Element => {
   const [galleryList, setGalleries] = useState<string[]>([]);
@@ -20,6 +22,7 @@ const MainPage = (): JSX.Element => {
     const fetchGalleries = async () => {
       setGalleries(await apiGetGalleryList());
     };
+    console.log("Xd");
 
     fetchGalleries();
   }, []);
@@ -67,13 +70,22 @@ const MainPage = (): JSX.Element => {
   return galleryList.length === 0 ? (
     <h1>Loading ...</h1>
   ) : (
-    <div>
-      {galleryList.map((gallery, i) => (
-        <div key={i}>
-          <GalleryPreview name={gallery} image={galleryPreviews[i]} />
-        </div>
-      ))}
-    </div>
+    <Routes>
+      <Route
+        path="/"
+        element={
+          <div>
+            {galleryList.map((gallery, i) => (
+              <div key={i}>
+                <GalleryPreview name={gallery} image={galleryPreviews[i]} />
+              </div>
+            ))}
+          </div>
+        }
+      />
+      <Route path="/gallery/:galleryName/*" element={<GalleryPage />} />
+      <Route path="*" element={<h1>404 Page Not Found</h1>} />
+    </Routes>
   );
 };
 

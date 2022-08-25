@@ -15,7 +15,6 @@ import ImageSize from "../Models/ImageSize";
 const GalleryPage = (): JSX.Element => {
   const [albumPreviews, setAlbumPreviews] = useState<AlbumProps[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [albumList, setAlbumList] = useState<string[]>([]);
   const [loadedX, setLoadedX] = useState<boolean>(false);
   const previewIndices = useRef<number[]>([]);
   const loadIndex = useRef<number>(0);
@@ -44,27 +43,32 @@ const GalleryPage = (): JSX.Element => {
 
     setAlbumPreviews([]);
     setIsLoading(true);
-    setAlbumList([]);
     setLoadedX(false);
     previewIndices.current = [];
     loadIndex.current = 0;
 
     const getAlbums = async () => {
-      setAlbumList(await apiGetAlbumList(galleryName));
+      let albumList = await apiGetAlbumList(galleryName);
+      setGallery(galleryName);
       setIsLoading(false);
+
+      let albumPreviews: AlbumProps[]  = [];
+      for (let album of albumList) {
+        albumPreviews.push({name: album, images: []});
+      }
+      setAlbumPreviews(albumPreviews);
     };
     getAlbums();
-    setGallery(galleryName);
   }, [galleryName]);
 
   useEffect(() => {
-    if (!gallery || albumList.length === 0) {
+    if (!gallery || albumPreviews.length === 0) {
       return;
     }
 
     const fetchPreview = async () => {
       let index = loadIndex.current;
-      if (index >= albumList.length) {
+      if (index >= albumPreviews.length) {
         if (!loadedX) {
           setLoadedX(true);
           loadIndex.current = 0;
@@ -77,34 +81,30 @@ const GalleryPage = (): JSX.Element => {
         previewIndices.current.push(
           Math.floor(
             Math.random() *
-              (await apiGetAlbumLength(gallery, albumList[loadIndex.current]))
+              (await apiGetAlbumLength(gallery, albumPreviews[loadIndex.current].name))
           )
         );
       }
 
       const albumPreview = {
-        name: albumList[index],
+        name: albumPreviews[index].name,
         images: [
           await apiGetImage(
             gallery,
-            albumList[index],
+            albumPreviews[index].name,
             previewIndices.current[index],
             imageSize
           ),
         ],
       };
-      if (index < albumList.length) {
-        let newAlbumPreviews = [...albumPreviews];
-        newAlbumPreviews[index] = albumPreview;
-        setAlbumPreviews(newAlbumPreviews);
-      } else {
-        setAlbumPreviews([...albumPreviews, albumPreview]);
-      }
+      let newAlbumPreviews = [...albumPreviews];
+      newAlbumPreviews[index] = albumPreview;
+      setAlbumPreviews(newAlbumPreviews);
       loadIndex.current++;
     };
 
     fetchPreview();
-  }, [loadedX, albumList, albumPreviews, gallery]);
+  }, [loadedX, albumPreviews, gallery]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -126,7 +126,7 @@ const GalleryPage = (): JSX.Element => {
             </span>
             {isLoading ? (
               <h1>Loading ...</h1>
-            ) : albumList.length !== 0 ? (
+            ) : albumPreviews.length !== 0 ? (
               <div>
                 <h1 className="title">{galleryName}</h1>
                 {albumPreviews.map((album, i) => (
