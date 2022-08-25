@@ -1,5 +1,5 @@
 use mongodb::bson::{doc, Document};
-use std::env;
+use std::{collections::HashMap, env};
 extern crate dotenv;
 use dotenv::dotenv;
 
@@ -18,10 +18,6 @@ fn get_image_buffer(image: &image::DynamicImage) -> Vec<u8> {
     cursor.into_inner()
 }
 
-pub struct MongoConnection {
-    pub client: mongodb::Client,
-}
-
 pub fn is_valid_gallery(gallery: &str) -> bool {
     return is_public_gallery(gallery) && gallery != "imageDB" && gallery != "albumDB";
 }
@@ -30,18 +26,70 @@ pub fn is_public_gallery(gallery: &str) -> bool {
     return gallery != "admin" && gallery != "local" && gallery != "config" && gallery != "tokenDB";
 }
 
+pub struct MongoConnection {
+    pub client: mongodb::Client,
+    galleries: HashMap<String, HashMap<String, u32>>,
+}
+
 impl MongoConnection {
     pub async fn init() -> Self {
         dotenv().ok();
         let uri = env::var("MONGODB_URI").unwrap();
         let client_options = mongodb::options::ClientOptions::parse(uri).await.unwrap();
         let client = mongodb::Client::with_options(client_options).unwrap();
+        let gallery_list;
+        match client.list_database_names(None, None).await {
+            Ok(mut databases) => {
+                databases.retain(|db| is_valid_gallery(db));
+                for i in 0..databases.len() {
+                    databases[i] = databases[i].replace("_", " ");
+                }
+                gallery_list = databases;
+            }
+            Err(_) => {
+                gallery_list = vec![];
+            }
+        }
 
-        MongoConnection { client }
+        let mut galleries: HashMap<String, HashMap<String, u32>> = HashMap::new();
+
+        for gallery in gallery_list {
+            galleries.insert(gallery.clone(), HashMap::new());
+
+            let gallery_obj = client.database(gallery.replace(" ", "_").as_str());
+            let album_list = gallery_obj.list_collection_names(None).await.unwrap();
+
+            for album in album_list {
+                let album_length: u32;
+
+                match gallery_obj
+                    .collection::<Document>(&album)
+                    .count_documents(doc! {"size": "x"}, None)
+                    .await
+                {
+                    Ok(len) => {
+                        album_length = len as u32;
+                    }
+                    Err(_) => {
+                        album_length = 0;
+                    }
+                }
+
+                galleries
+                    .get_mut(&gallery)
+                    .unwrap()
+                    .insert(album, album_length);
+            }
+        }
+
+        println!("{:?}", galleries);
+
+        MongoConnection { client, galleries }
     }
 
     pub fn get_gallery(&self, gallery_name: &str) -> mongodb::Database {
-        self.client.database(gallery_name.replace(" ", "_").as_str())
+        self.client
+            .database(gallery_name.replace(" ", "_").as_str())
     }
 
     pub fn get_album(&self, gallery_name: &str, album_name: &str) -> mongodb::Collection<Document> {
@@ -50,34 +98,22 @@ impl MongoConnection {
     }
 
     pub async fn album_exists(&self, gallery_name: &str, album_name: &str) -> bool {
-        match self
-            .get_gallery(gallery_name)
-            .list_collection_names(None)
-            .await
-        {
-            Ok(albums) => {
-                if albums.contains(&album_name.to_string()) {
-                    return true;
-                }
+        if let Some(gallery) = self.galleries.get(gallery_name) {
+            if gallery.contains_key(album_name) {
+                return true;
             }
-            Err(_) => {}
         }
         return false;
     }
 
     pub async fn get_gallery_list(&self) -> Vec<String> {
-        match self.client.list_database_names(None, None).await {
-            Ok(mut databases) => {
-                databases.retain(|db| is_valid_gallery(db));
-                for i in 0..databases.len() {
-                    databases[i] = databases[i].replace("_", " ");
-                }
-                databases
-            }
-            Err(_) => {
-                vec![]
-            }
+        let mut gallery_list: Vec<String> = vec![];
+
+        for gallery in &self.galleries {
+            gallery_list.push(gallery.0.to_string());
         }
+
+        return gallery_list;
     }
 
     pub async fn get_image_data(
@@ -115,28 +151,26 @@ impl MongoConnection {
     }
 
     pub async fn get_album_list(&self, gallery_name: &str) -> Vec<String> {
-        self.get_gallery(gallery_name)
-            .list_collection_names(None)
-            .await
-            .unwrap()
+        if let Some(gallery) = self.galleries.get(gallery_name) {
+            let mut album_list: Vec<String> = vec![];
+
+            for album in gallery {
+                album_list.push(album.0.to_string());
+            }
+
+            return album_list;
+        } else {
+            return vec![];
+        }
     }
 
     pub async fn get_album_length(&self, gallery_name: &str, album_name: &str) -> i64 {
-        if !self.album_exists(gallery_name, album_name).await {
-            return -1;
-        }
-        match self
-            .get_album(gallery_name, album_name)
-            .count_documents(doc! {"size": "x"}, None)
-            .await
-        {
-            Ok(len) => {
-                return len as i64;
-            }
-            Err(_) => {
-                return -1;
+        if let Some(gallery) = self.galleries.get(gallery_name) {
+            if let Some(album_length) = gallery.get(album_name) {
+                return *album_length as i64;
             }
         }
+        return -1;
     }
 
     pub async fn is_admin_token(&self, gallery_name: &str, token: &str) -> bool {
@@ -152,7 +186,10 @@ impl MongoConnection {
 
     async fn get_admin_token(&self, gallery_name: &str) -> String {
         let col = self.get_album("tokenDB", "tokens");
-        match col.find_one(doc! {"gallery": gallery_name.replace(" ", "_")}, None).await {
+        match col
+            .find_one(doc! {"gallery": gallery_name.replace(" ", "_")}, None)
+            .await
+        {
             Ok(doc) => {
                 if let Some(token_doc) = doc {
                     match token_doc.get_str("token") {
@@ -169,11 +206,11 @@ impl MongoConnection {
     }
 
     pub async fn scale_and_post_image(
-        &self,
+        &mut self,
         image_data: &Vec<u8>,
         gallery_name: &str,
         album_name: &str,
-        image_index: u32
+        image_index: u32,
     ) {
         match image::load_from_memory_with_format(&image_data, image::ImageFormat::Jpeg) {
             Ok(image_l) => {
@@ -182,12 +219,40 @@ impl MongoConnection {
                 let image_s = scale_image_file(&image_l, 1f32 / 4f32);
                 let image_m = scale_image_file(&image_l, 1f32 / 2f32);
                 // go in pending database
-                self.post_image(gallery_name, album_name, &get_image_buffer(&image_x), "x", image_index)
-                    .await;
-                self.post_image(gallery_name, album_name, &get_image_buffer(&image_s), "s", image_index)
-                    .await;
-                self.post_image(gallery_name, album_name, &get_image_buffer(&image_m), "m", image_index)
-                    .await;
+                self.post_image(
+                    gallery_name,
+                    album_name,
+                    &get_image_buffer(&image_x),
+                    "x",
+                    image_index,
+                )
+                .await;
+                self.post_image(
+                    gallery_name,
+                    album_name,
+                    &get_image_buffer(&image_s),
+                    "s",
+                    image_index,
+                )
+                .await;
+                self.post_image(
+                    gallery_name,
+                    album_name,
+                    &get_image_buffer(&image_m),
+                    "m",
+                    image_index,
+                )
+                .await;
+
+                if let Some(albums) = self.galleries.get_mut(gallery_name) {
+                    if let Some(album_length) = albums.get_mut(album_name) {
+                        println!("OLD LEN: {}", album_length);
+                        *album_length += 1;
+                    }
+                    if let Some(album_length) = albums.get_mut(album_name) {
+                        println!("NEW LEN: {}", album_length);
+                    }
+                }
             }
             Err(_) => {
                 // image is not jpeg
@@ -201,7 +266,7 @@ impl MongoConnection {
         album_name: &str,
         image_data: &Vec<u8>,
         image_size: &str,
-        image_index: u32
+        image_index: u32,
     ) {
         if !self.album_exists(gallery_name, album_name).await {
             return;
@@ -244,7 +309,7 @@ impl MongoConnection {
         };
     }
 
-    pub async fn delete_image(&self, gallery_name: &str, album_name: &str, index: u32) {
+    pub async fn delete_image(&mut self, gallery_name: &str, album_name: &str, index: u32) {
         if !self.album_exists(gallery_name, album_name).await {
             return;
         }
@@ -254,6 +319,17 @@ impl MongoConnection {
         match album.delete_many(doc! {"index": index}, None).await {
             Ok(del_res) => {
                 println!("{:?}", del_res);
+
+                if let Some(albums) = self.galleries.get_mut(gallery_name) {
+                    if let Some(album_length) = albums.get_mut(album_name) {
+                        println!("OLD LEN: {}", album_length);
+                        *album_length -= 1;
+                    }
+                    if let Some(album_length) = albums.get_mut(album_name) {
+                        println!("NEW LEN: {}", album_length);
+                    }
+                }
+
                 match album
                     .update_many(doc! {"index": {"$gt": index}}, update_doc, None)
                     .await
@@ -268,20 +344,31 @@ impl MongoConnection {
         }
     }
 
-    pub async fn create_album(&self, gallery_name: &str, album_name: &str) {
+    pub async fn create_album(&mut self, gallery_name: &str, album_name: &str) {
         match self
             .get_gallery(&gallery_name)
             .create_collection(&album_name, None)
             .await
         {
-            Ok(_) => println!("Created album: {} in {}", album_name, gallery_name),
+            Ok(_) => {
+                if let Some(albums) = self.galleries.get_mut(gallery_name) {
+                    albums.insert(album_name.to_owned(), 0);
+                }
+
+                println!("Created album: {} in {}", album_name, gallery_name);
+            }
             Err(e) => println!("{}", e),
         }
     }
 
-    pub async fn delete_album(&self, gallery_name: &str, album_name: &str) {
+    pub async fn delete_album(&mut self, gallery_name: &str, album_name: &str) {
         match self.get_album(&gallery_name, &album_name).drop(None).await {
-            Ok(_) => println!("Deleted album: {} in {}", album_name, gallery_name),
+            Ok(_) => {
+                if let Some(albums) = self.galleries.get_mut(gallery_name) {
+                    albums.remove(album_name);
+                }
+                println!("Deleted album: {} in {}", album_name, gallery_name);
+            }
             Err(e) => println!("{}", e),
         }
     }

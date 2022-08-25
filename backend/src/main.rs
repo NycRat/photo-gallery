@@ -6,6 +6,7 @@ use rocket::data::ToByteUnit;
 use rocket::request::{FromRequest, Outcome};
 use rocket::State;
 use rocket::{Data, Request};
+use tokio::sync::Mutex;
 
 #[macro_use]
 extern crate rocket;
@@ -37,7 +38,10 @@ impl<'r> FromRequest<'r> for AdminAuth {
 
         match token {
             Some(token) => {
-                if let Some(mongodb_connection) = request.rocket().state::<MongoConnection>() {
+                if let Some(mut_mongodb_connection) =
+                    request.rocket().state::<Mutex<MongoConnection>>()
+                {
+                    let mongodb_connection = mut_mongodb_connection.lock().await;
                     if mongodb_connection.is_admin_token(&gallery, token).await {
                         return Outcome::Success(AdminAuth(true));
                     }
@@ -51,7 +55,8 @@ impl<'r> FromRequest<'r> for AdminAuth {
 }
 
 #[get("/gallery_list")]
-async fn get_gallery_list(mongodb_connection: &State<MongoConnection>) -> String {
+async fn get_gallery_list(mut_mongodb_connection: &State<Mutex<MongoConnection>>) -> String {
+    let mongodb_connection = mut_mongodb_connection.lock().await;
     let galleries = mongodb_connection.get_gallery_list().await;
     let mut res = String::new();
     for i in 0..galleries.len() {
@@ -64,10 +69,14 @@ async fn get_gallery_list(mongodb_connection: &State<MongoConnection>) -> String
 }
 
 #[get("/album_list?<gallery>")]
-async fn get_album_list(gallery: &str, mongodb_connection: &State<MongoConnection>) -> String {
+async fn get_album_list(
+    gallery: &str,
+    mut_mongodb_connection: &State<Mutex<MongoConnection>>,
+) -> String {
     if !is_valid_gallery(gallery) {
         return "".to_owned();
     }
+    let mongodb_connection = mut_mongodb_connection.lock().await;
     let albums = mongodb_connection.get_album_list(gallery).await;
     let mut res = String::new();
     for i in 0..albums.len() {
@@ -83,11 +92,12 @@ async fn get_album_list(gallery: &str, mongodb_connection: &State<MongoConnectio
 async fn get_album_length(
     gallery: &str,
     album: &str,
-    mongodb_connection: &State<MongoConnection>,
+    mut_mongodb_connection: &State<Mutex<MongoConnection>>,
 ) -> String {
     if !is_public_gallery(gallery) {
         return "-1".to_owned();
     }
+    let mongodb_connection = mut_mongodb_connection.lock().await;
     mongodb_connection
         .get_album_length(gallery, album)
         .await
@@ -100,11 +110,12 @@ async fn get_image(
     album: &str,
     index: u32,
     size: &str,
-    mongodb_connection: &State<MongoConnection>,
+    mut_mongodb_connection: &State<Mutex<MongoConnection>>,
 ) -> String {
     if !is_public_gallery(gallery) {
         return "".to_owned();
     }
+    let mongodb_connection = mut_mongodb_connection.lock().await;
     match mongodb_connection
         .get_image_data(gallery, album, index, size)
         .await
@@ -120,7 +131,7 @@ async fn post_image(
     album: &str,
     image_data: Data<'_>,
     auth: AdminAuth,
-    mongodb_connection: &State<MongoConnection>,
+    mut_mongodb_connection: &State<Mutex<MongoConnection>>,
 ) {
     if auth.0 {
         let data_str;
@@ -132,6 +143,7 @@ async fn post_image(
                 return;
             }
         }
+        let mut mongodb_connection = mut_mongodb_connection.lock().await;
         let image_index: u32 = mongodb_connection.get_album_length(gallery, album).await as u32;
         mongodb_connection
             .scale_and_post_image(&data_str, gallery, album, image_index)
@@ -145,9 +157,10 @@ async fn delete_image(
     album: &str,
     index: u32,
     auth: AdminAuth,
-    mongodb_connection: &State<MongoConnection>,
+    mut_mongodb_connection: &State<Mutex<MongoConnection>>,
 ) {
     if auth.0 {
+        let mut mongodb_connection = mut_mongodb_connection.lock().await;
         mongodb_connection.delete_image(gallery, album, index).await;
     }
 }
@@ -156,8 +169,9 @@ async fn delete_image(
 async fn get_random_image_index(
     gallery: &str,
     album: &str,
-    mongodb_connection: &State<MongoConnection>,
+    mut_mongodb_connection: &State<Mutex<MongoConnection>>,
 ) -> String {
+    let mongodb_connection = mut_mongodb_connection.lock().await;
     let album_length = mongodb_connection.get_album_length(gallery, album).await;
     if album_length <= 1 {
         return "0".to_owned();
@@ -166,7 +180,11 @@ async fn get_random_image_index(
 }
 
 #[get("/album_random?<gallery>")]
-async fn get_random_album(gallery: &str, mongodb_connection: &State<MongoConnection>) -> String {
+async fn get_random_album(
+    gallery: &str,
+    mut_mongodb_connection: &State<Mutex<MongoConnection>>,
+) -> String {
+    let mongodb_connection = mut_mongodb_connection.lock().await;
     let album_list = mongodb_connection.get_album_list(gallery).await;
     let index = rand::thread_rng().gen_range(0..album_list.len());
     album_list[index].clone()
@@ -185,9 +203,10 @@ async fn post_album(
     gallery: &str,
     album: &str,
     auth: AdminAuth,
-    mongodb_connection: &State<MongoConnection>,
+    mut_mongodb_connection: &State<Mutex<MongoConnection>>,
 ) {
     if auth.0 {
+        let mut mongodb_connection = mut_mongodb_connection.lock().await;
         mongodb_connection.create_album(gallery, album).await;
     }
 }
@@ -197,9 +216,10 @@ async fn delete_album(
     gallery: &str,
     album: &str,
     auth: AdminAuth,
-    mongodb_connection: &State<MongoConnection>,
+    mut_mongodb_connection: &State<Mutex<MongoConnection>>,
 ) {
     if auth.0 {
+        let mut mongodb_connection = mut_mongodb_connection.lock().await;
         mongodb_connection.delete_album(gallery, album).await;
     }
 }
@@ -212,6 +232,7 @@ async fn options_route(path: PathBuf) -> &'static str {
 #[launch]
 async fn rocket() -> _ {
     let mongodb_connection = MongoConnection::init().await;
+    let mut_mongodb_connection = Mutex::new(mongodb_connection);
     use rocket::http::Method;
     use rocket_cors::{AllowedOrigins, CorsOptions};
 
@@ -227,7 +248,7 @@ async fn rocket() -> _ {
 
     rocket::build()
         .attach(cors.to_cors().unwrap())
-        .manage(mongodb_connection)
+        .manage(mut_mongodb_connection)
         .mount(
             "/api/",
             routes![
