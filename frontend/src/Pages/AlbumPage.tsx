@@ -134,7 +134,9 @@ const AlbumPage = (props: { hasAdminAccess: boolean }): JSX.Element => {
     let newImages = [...images];
     newImages.splice(selectedImageIndex, 1);
     setImages(newImages);
+
     setSelectedImageIndex(-1);
+    navigate(`/gallery/${galleryName}/album/${albumName}`);
   };
 
   return (
