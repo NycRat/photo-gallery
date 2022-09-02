@@ -22,7 +22,7 @@ const Navbar = (): JSX.Element => {
         className="nav-dropdown-icon"
         onClick={() => setDropdown(!dropdown)}
       >
-        ☰
+        <p className="text">☰</p>
       </span>
     </nav>
   );

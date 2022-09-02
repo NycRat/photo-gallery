@@ -50,7 +50,6 @@ button {
   .nav-dropdown-icon {
     display: none;
     width: 60px;
-    height: 40px;
   }
   a {
     color: #fff0e3;
@@ -83,28 +82,52 @@ button {
         }
       }
     }
+
     .nav-dropdown-icon {
-      display: block;
+      display: inline-block;
+      // background-color: #92aa52;
+      // position: absolute;
+      // top: 0;
+      // right: 0;
+
+      // padding-right: 20px;
+      // background-image: linear-gradient(to left, #6e6e6e, $navbar-color);
+      // font-size: 18px;
+      // cursor: pointer;
+
+      // height: 50px;
+
+      // text-align: right;
+      // padding-left: 5vw;
+      // transition: all 0.4s;
+      // &:hover {
+      //   padding-left: 85px;
+      // }
+
+      // font-size: 35px;
+
+      width: calc(60px + 2vw);
+      height: 50px;
       background-color: #92aa52;
       position: absolute;
+      z-index: 2;
       top: 0;
       right: 0;
-
-      padding-right: 20px;
       background-image: linear-gradient(to left, #6e6e6e, $navbar-color);
-      font-size: 18px;
       cursor: pointer;
-
-      height: 50px;
-
-      text-align: right;
-      padding-left: 50px;
       transition: all 0.4s;
       &:hover {
-        padding-left: 85px;
+        padding-left: 40px;
       }
 
-      font-size: 35px;
+      .text {
+        position: absolute;
+        margin: 0;
+        top: 50%;
+        right: 15px;
+        font-size: 35px;
+        transform: translateY(-58%);
+      }
     }
   }
 }
@@ -267,24 +290,47 @@ button {
 }
 
 .back-button {
+  // background-color: #92aa52;
+  // color: white;
+  // position: fixed;
+  // z-index: 2;
+  // top: 0;
+  // left: 0;
+  // padding: 14.5px;
+  // padding-left: 20px;
+  // background-image: linear-gradient(to right, #6e6e6e, $navbar-color);
+  // font-size: 18px;
+  // cursor: pointer;
+  // max-height: 50px;
+
+  // padding-right: 5vw;
+  // transition: all 0.4s;
+  // &:hover {
+  //   padding-right: 100px;
+  // }
+
+  display: inline-block;
+  width: calc(60px + 2vw);
+  height: 50px;
   background-color: #92aa52;
-  color: white;
   position: absolute;
-  position: fixed;
   z-index: 2;
   top: 0;
   left: 0;
-  padding: 14.5px;
-  padding-left: 20px;
   background-image: linear-gradient(to right, #6e6e6e, $navbar-color);
-  font-size: 18px;
   cursor: pointer;
-  max-height: 50px;
-
-  padding-right: 50px;
   transition: all 0.4s;
   &:hover {
-    padding-right: 100px;
+    padding-right: 40px;
+  }
+
+  .text {
+    position: absolute;
+    margin: 0;
+    top: 50%;
+    left: 10px;
+    font-size: 18px;
+    transform: translateY(-58%);
   }
 }
 

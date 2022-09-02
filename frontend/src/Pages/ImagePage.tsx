@@ -43,7 +43,7 @@ const ImagePage = (props: {
     <div className="album-page">
       <div className="image-page">
         <span className="back-button" onClick={props.handleBackButton}>
-          Back
+          <p className="text">Back</p>
         </span>
         {props.hasAdminAccess && (
           <span className="delete-button" onClick={props.handleImageDelete}>

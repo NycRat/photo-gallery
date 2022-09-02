@@ -52,9 +52,9 @@ const GalleryPage = (): JSX.Element => {
       setGallery(galleryName);
       setIsLoading(false);
 
-      let albumPreviews: AlbumProps[]  = [];
+      let albumPreviews: AlbumProps[] = [];
       for (let album of albumList) {
-        albumPreviews.push({name: album, images: []});
+        albumPreviews.push({ name: album, images: [] });
       }
       setAlbumPreviews(albumPreviews);
     };
@@ -81,7 +81,10 @@ const GalleryPage = (): JSX.Element => {
         previewIndices.current.push(
           Math.floor(
             Math.random() *
-              (await apiGetAlbumLength(gallery, albumPreviews[loadIndex.current].name))
+              (await apiGetAlbumLength(
+                gallery,
+                albumPreviews[loadIndex.current].name
+              ))
           )
         );
       }
@@ -122,7 +125,7 @@ const GalleryPage = (): JSX.Element => {
         element={
           <div>
             <span className="back-button" onClick={() => navigate(`/`)}>
-              Back
+              <p className="text">Back</p>
             </span>
             {isLoading ? (
               <h1>Loading ...</h1>

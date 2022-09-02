@@ -158,7 +158,7 @@ const AlbumPage = (props: { hasAdminAccess: boolean }): JSX.Element => {
               ) && (
                 <div>
                   <span className="back-button" onClick={handleClickBackButton}>
-                    Back
+                    <p className="text">Back</p>
                   </span>
                 </div>
               )
