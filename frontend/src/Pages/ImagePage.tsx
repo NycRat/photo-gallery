@@ -47,7 +47,7 @@ const ImagePage = (props: {
         </span>
         {props.hasAdminAccess && (
           <span className="delete-button" onClick={props.handleImageDelete}>
-            Delete
+            <p className="text">Delete</p>
           </span>
         )}
         <Image src={imageData} size={ImageSize.m} />

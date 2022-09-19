@@ -190,7 +190,7 @@ const AlbumPage = (props: { hasAdminAccess: boolean }): JSX.Element => {
                       alert("Album names did not match.");
                     }}
                   >
-                    Delete
+                    <p className="text">Delete</p>
                   </span>
                 )}
 
