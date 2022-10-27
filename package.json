@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "yarn concurrently \"yarn run frontend\" \"yarn run backend\"",
+    "build": "cd frontend; yarn build; cd ..",
+    "deploy": "cd frontend; yarn gh-pages -d build; cd ..",
     "frontend": "cd frontend; yarn start",
     "backend": "cd backend; cargo run"
   },
