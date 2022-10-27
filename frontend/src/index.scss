@@ -200,6 +200,7 @@ button {
     max-height: none;
     border-radius: 10px;
     border: 1px solid #dddddd;
+    aspect-ratio: 3/2;
   }
 
   .title {
@@ -249,9 +250,10 @@ button {
     padding: 0;
     border: none;
 
+    aspect-ratio: 3/2;
+
     object-fit: cover;
     max-width: none;
-    max-height: none;
     border-radius: 10px;
     border: 1px solid #dddddd;
 
