@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
+import { apiUpdateServerCache } from "../Api/ApiFunctions";
 
 const AdminPage = (): JSX.Element => {
-  const [tokenInput , setTokenInput ]= useState<string>("");
+  const [tokenInput, setTokenInput] = useState<string>("");
   const [token, setToken] = useState<string>("");
   const [cookies, setCookies] = useCookies(["auth_token"]);
 
@@ -29,20 +30,28 @@ const AdminPage = (): JSX.Element => {
     }
     alert("Entered Admin Token");
     setTokenInput("");
-  }
+  };
 
   const handleChange = (e: React.FormEvent<HTMLInputElement>) => {
     setTokenInput(e.currentTarget.value);
-  }
+  };
 
   return (
     <div>
       <h1>Admin Login</h1>
-      <form onSubmit={handleSubmit} >
+      <form onSubmit={handleSubmit}>
         <label>Admin Token: </label>
         <input type={"password"} onChange={handleChange} value={tokenInput} />
         <input type={"submit"} value={"Enter"} disabled={tokenInput === ""} />
       </form>
+      <button
+        onClick={async () => {
+          alert("Wait for next alert");
+          await apiUpdateServerCache();
+        }}
+      >
+        Update Server Cache
+      </button>
     </div>
   );
 };

@@ -56,7 +56,7 @@ export const apiGetRandomImageIndex = async (
 };
 
 export const apiGetHasAdminAccess = async (gallery: string) => {
-  let token = new Cookies().get("auth_token");
+  const token = new Cookies().get("auth_token");
   const res = await axios.get(`${ServerURL}/has_admin?gallery=${gallery}`, {
     // withCredentials: true,
     headers: {
@@ -71,7 +71,7 @@ export const apiPostPhoto = async (
   gallery: string,
   album: string
 ) => {
-  let token = new Cookies().get("auth_token");
+  const token = new Cookies().get("auth_token");
   await axios.post(
     `${ServerURL}/image?gallery=${gallery}&album=${album}`,
     imageData,
@@ -89,7 +89,7 @@ export const apiDeletePhoto = async (
   album: string,
   index: number
 ) => {
-  let token = new Cookies().get("auth_token");
+  const token = new Cookies().get("auth_token");
   await axios.delete(
     `${ServerURL}/image?gallery=${gallery}&album=${album}&index=${index}`,
     {
@@ -102,7 +102,7 @@ export const apiDeletePhoto = async (
 };
 
 export const apiPostAlbum = async (gallery: string, album: string) => {
-  let token = new Cookies().get("auth_token");
+  const token = new Cookies().get("auth_token");
   await axios.post(
     `${ServerURL}/album?gallery=${gallery}&album=${album}`,
     {},
@@ -116,11 +116,25 @@ export const apiPostAlbum = async (gallery: string, album: string) => {
 };
 
 export const apiDeleteAlbum = async (gallery: string, album: string) => {
-  let token = new Cookies().get("auth_token");
+  const token = new Cookies().get("auth_token");
   await axios.delete(`${ServerURL}/album?gallery=${gallery}&album=${album}`, {
     // withCredentials: true,
     headers: {
       token: token,
     },
   });
+};
+
+export const apiUpdateServerCache = async () => {
+  const token = new Cookies().get("auth_token");
+  await axios.post(
+    `${ServerURL}/cache`,
+    {},
+    {
+      headers: {
+        token: token,
+      },
+    }
+  );
+  alert("Updated Server Cache");
 };

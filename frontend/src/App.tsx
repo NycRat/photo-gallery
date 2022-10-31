@@ -4,7 +4,6 @@ import Navbar from "./Components/Navbar";
 import AdminPage from "./Pages/AdminPage";
 
 const App = (): JSX.Element => {
-
   return (
     <div className="app">
       <Navbar />
