@@ -121,7 +121,11 @@ const GalleryPage = (): JSX.Element => {
   return (
     <Routes>
       <Route
-        path="/"
+        path="/album/:albumName/*"
+        element={<AlbumPage hasAdminAccess={hasAdminAccess} />}
+      />
+      <Route
+        path="*"
         element={
           <div>
             <span className="back-button" onClick={() => navigate(`/`)}>
@@ -130,40 +134,43 @@ const GalleryPage = (): JSX.Element => {
             {isLoading ? (
               <h1>Loading ...</h1>
             ) : albumPreviews.length !== 0 ? (
-              <div>
-                <h1 className="title">{galleryName}</h1>
-                {albumPreviews.map((album, i) => (
-                  <AlbumPreview key={i} {...album} />
-                ))}
-                {hasAdminAccess && (
-                  <div>
-                    <h1>New Album</h1>
-                    <form onSubmit={handleSubmit}>
-                      <input
-                        type={"text"}
-                        value={newAlbumInput}
-                        onChange={(e) => {
-                          setNewAlbumInput(e.currentTarget.value);
-                        }}
-                      />
-                      <input
-                        type={"submit"}
-                        value={"Create Album"}
-                        disabled={newAlbumInput === ""}
-                      />
-                    </form>
-                  </div>
-                )}
-              </div>
+              albumPreviews.length === 1 ? (
+                <AlbumPage
+                  hasAdminAccess={hasAdminAccess}
+                  album={albumPreviews[0].name}
+                />
+              ) : (
+                <div>
+                  <h1 className="title">{galleryName}</h1>
+                  {albumPreviews.map((album, i) => (
+                    <AlbumPreview key={i} {...album} />
+                  ))}
+                  {hasAdminAccess && (
+                    <div>
+                      <h1>New Album</h1>
+                      <form onSubmit={handleSubmit}>
+                        <input
+                          type={"text"}
+                          value={newAlbumInput}
+                          onChange={(e) => {
+                            setNewAlbumInput(e.currentTarget.value);
+                          }}
+                        />
+                        <input
+                          type={"submit"}
+                          value={"Create Album"}
+                          disabled={newAlbumInput === ""}
+                        />
+                      </form>
+                    </div>
+                  )}
+                </div>
+              )
             ) : (
               <h1>404 Gallery Not Found</h1>
             )}
           </div>
         }
-      />
-      <Route
-        path="/album/:albumName/*"
-        element={<AlbumPage hasAdminAccess={hasAdminAccess} />}
       />
       <Route path="*" element={<div>404 Page Not Found</div>} />
     </Routes>

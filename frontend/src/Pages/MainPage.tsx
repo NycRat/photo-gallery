@@ -22,7 +22,6 @@ const MainPage = (): JSX.Element => {
     const fetchGalleries = async () => {
       setGalleries(await apiGetGalleryList());
     };
-    console.log("Xd");
 
     fetchGalleries();
   }, []);
