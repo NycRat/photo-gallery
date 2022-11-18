@@ -49,6 +49,12 @@ const AlbumPage = (props: {
     setSelectedImageIndex(-1);
     setInvalidAlbum(false);
     loadedMsList.current = new Set();
+  }, [albumName, albumNameS, galleryName, props.album]);
+
+  useEffect(() => {
+    if (!albumNameS || !galleryName) {
+      return;
+    }
 
     const getImagesBlank = async () => {
       // no image data, but right amount of images
@@ -64,7 +70,7 @@ const AlbumPage = (props: {
       }
     };
     getImagesBlank();
-  }, [albumName, albumNameS, galleryName, props.album]);
+  }, [albumNameS, galleryName]);
 
   useEffect(() => {
     if (images.length <= 0 || !galleryName || !albumNameS) {
