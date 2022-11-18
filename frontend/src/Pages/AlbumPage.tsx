@@ -18,12 +18,12 @@ const AlbumPage = (props: {
 }): JSX.Element => {
   const [images, setImages] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [albumLength, setAlbumLength] = useState<number>(0);
   const [loadedX, setLoadedX] = useState<boolean>(false);
   const [loadIndex, setLoadIndex] = useState<number>(0);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(-1);
   const [selectedNewImage, setSelectedNewImage] = useState<boolean>(false);
   const [albumNameS, setAlbumName] = useState<string>("");
+  const [invalidAlbum, setInvalidAlbum] = useState<boolean>(false);
   const loadedMsList = useRef(new Set());
 
   const { galleryName, albumName } = useParams();
@@ -31,45 +31,47 @@ const AlbumPage = (props: {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!albumName) {
-      if (props.album) {
-        setAlbumName(props.album);
-        console.log(albumNameS);
-      }
-    } else {
-      setAlbumName(albumName);
-    }
     if (!galleryName) {
       return;
     }
+    if (!albumName) {
+      if (!props.album) {
+        return;
+      }
+      setAlbumName(props.album);
+    } else {
+      setAlbumName(albumName);
+    }
     setImages([]);
     setIsLoading(true);
-    setAlbumLength(0);
     setLoadedX(false);
     setLoadIndex(0);
     setSelectedImageIndex(-1);
+    setInvalidAlbum(false);
     loadedMsList.current = new Set();
 
-    const getAlbumLen = async () => {
-      let len = await apiGetAlbumLength(galleryName, albumNameS);
-      setAlbumLength(len);
+    const getImagesBlank = async () => {
+      // no image data, but right amount of images
+      const len = await apiGetAlbumLength(galleryName, albumNameS);
       setIsLoading(false);
 
-      let images: string[] = [];
-      for (let i = 0; i < len; i++) {
-        images.push("");
+      if (len !== -1) {
+        const images: string[] = Array(len).fill("");
+        setImages(images);
+        setInvalidAlbum(false);
+      } else {
+        setInvalidAlbum(true);
       }
-      setImages(images);
     };
-    getAlbumLen();
+    getImagesBlank();
   }, [albumName, albumNameS, galleryName, props.album]);
 
   useEffect(() => {
-    if (albumLength <= 0 || !galleryName || !albumNameS) {
+    if (images.length <= 0 || !galleryName || !albumNameS) {
       return;
     }
     const fetchPhoto = async () => {
-      if (loadIndex >= albumLength) {
+      if (loadIndex >= images.length) {
         if (!loadedX) {
           setLoadIndex(0);
           setLoadedX(true);
@@ -92,10 +94,10 @@ const AlbumPage = (props: {
     };
 
     fetchPhoto();
-  }, [albumLength, albumNameS, galleryName, images, loadIndex, loadedX]);
+  }, [images.length, albumNameS, galleryName, images, loadIndex, loadedX]);
 
   useEffect(() => {
-    if (albumLength <= 0 || !galleryName || !albumNameS) {
+    if (images.length <= 0 || !galleryName || !albumNameS) {
       return;
     }
     if (selectedImageIndex >= 0 && selectedImageIndex < images.length) {
@@ -119,7 +121,7 @@ const AlbumPage = (props: {
       fetchPhoto();
     }
   }, [
-    albumLength,
+    images.length,
     albumNameS,
     galleryName,
     images,
@@ -166,7 +168,7 @@ const AlbumPage = (props: {
                 !isLoading &&
                 selectedImageIndex >= 0 &&
                 selectedImageIndex < images.length &&
-                albumLength !== -1
+                !invalidAlbum
               ) && (
                 <div>
                   <span className="back-button" onClick={handleClickBackButton}>
@@ -177,7 +179,7 @@ const AlbumPage = (props: {
             }
             {isLoading ? (
               <h1>Loading ...</h1>
-            ) : albumLength !== -1 ? (
+            ) : !invalidAlbum ? (
               <div>
                 {albumName ? (
                   <h1>{albumName}</h1>
@@ -212,7 +214,7 @@ const AlbumPage = (props: {
                     src={photo}
                     size={ImageSize.s}
                     onClick={() => {
-                      if (loadedX && loadIndex >= albumLength) {
+                      if (loadedX && loadIndex >= images.length) {
                         setSelectedImageIndex(i);
                         if (albumName) {
                           navigate(
