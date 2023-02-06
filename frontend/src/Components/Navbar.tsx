@@ -11,7 +11,7 @@ const Navbar = (): JSX.Element => {
       <span className={dropdown ? "dropdown active" : "dropdown"}>
         {/* <a href="/photo-gallery/#/gallery/albumDB" onClick={() => setDropdown(false)}>Albums</a> */}
         <a
-          href="/photo-gallery/#/gallery/imageDB/album/images"
+          href="/photo-gallery/#/gallery/Photos"
           onClick={() => setDropdown(false)}
         >
           Photos

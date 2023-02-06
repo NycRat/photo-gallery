@@ -19,7 +19,7 @@ fn get_image_buffer(image: &image::DynamicImage) -> Vec<u8> {
 }
 
 pub fn is_valid_gallery(gallery: &str) -> bool {
-    return is_public_gallery(gallery) && gallery != "imageDB" && gallery != "albumDB";
+    return is_public_gallery(gallery) && gallery != "Photos";
 }
 
 pub fn is_public_gallery(gallery: &str) -> bool {
@@ -156,7 +156,7 @@ impl MongoConnection {
     }
 
     pub async fn get_album_list(&self, gallery_name: &str) -> Vec<String> {
-        if !is_valid_gallery(gallery_name) {
+        if !is_public_gallery(gallery_name) {
             return vec![];
         }
         if let Some(gallery) = self.galleries.get(gallery_name) {
