@@ -199,7 +199,7 @@ button {
     max-width: none;
     max-height: none;
     border-radius: 10px;
-    border: 1px solid #dddddd;
+    border: 1px solid #4d4d4d;
     aspect-ratio: 3/2;
   }
 
@@ -255,7 +255,7 @@ button {
     object-fit: cover;
     max-width: none;
     border-radius: 10px;
-    border: 1px solid #dddddd;
+    border: 1px solid #4d4d4d;
 
     @media only screen and (max-width: 1200px) {
       width: calc(100vw / 2 - 40px);
