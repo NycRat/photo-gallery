@@ -42,6 +42,7 @@ const AlbumPage = (props: {
     } else {
       setAlbumName(albumName);
     }
+
     setImages([]);
     setIsLoading(true);
     setLoadedX(false);
@@ -262,6 +263,7 @@ const AlbumPage = (props: {
             src={
               selectedImageIndex === -1 ? undefined : images[selectedImageIndex]
             }
+            album={props.album}
             hasAdminAccess={props.hasAdminAccess}
             handleBackButton={() => {
               setSelectedImageIndex(-1);

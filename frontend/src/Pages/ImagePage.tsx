@@ -6,14 +6,27 @@ import ImageSize from "../Models/ImageSize";
 
 const ImagePage = (props: {
   src?: string;
+  album?: string;
   hasAdminAccess: boolean;
   handleImageDelete: () => void;
   handleBackButton: () => void;
 }): JSX.Element => {
   const [imageData, setImageData] = useState<string>("");
   const [loadingSize, setLoadingSize] = useState<ImageSize>(ImageSize.x);
+  const [albumNameS, setAlbumName] = useState<string>("");
 
   const { galleryName, albumName, index } = useParams();
+
+  useEffect(() => {
+    if (!albumName) {
+      if (!props.album) {
+        return;
+      }
+      setAlbumName(props.album);
+    } else {
+      setAlbumName(albumName);
+    }
+  }, [albumName, props.album]);
 
   useEffect(() => {
     if (props.src) {
@@ -21,11 +34,11 @@ const ImagePage = (props: {
       return;
     }
     const getImageData = async () => {
-      if (galleryName && albumName && index) {
+      if (galleryName && albumNameS && index) {
         setImageData(
           await apiGetImage(
             galleryName,
-            albumName,
+            albumNameS,
             parseInt(index),
             loadingSize
             /* ImageSize.x */
@@ -37,7 +50,7 @@ const ImagePage = (props: {
       }
     };
     getImageData();
-  }, [albumName, galleryName, index, loadingSize, props.src]);
+  }, [albumNameS, galleryName, index, loadingSize, props.src]);
 
   return (
     <div className="album-page">
