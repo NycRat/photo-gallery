@@ -55,13 +55,17 @@ const ImagePage = (props: {
   return (
     <div className="album-page">
       <div className="image-page">
-        <span className="back-button" onClick={props.handleBackButton}>
-          <p className="text">Back</p>
-        </span>
+        <button
+          className="material-symbols-outlined back-button"
+          onClick={props.handleBackButton}
+        >
+          arrow_back
+        </button>
+
         {props.hasAdminAccess && (
-          <span className="delete-button" onClick={props.handleImageDelete}>
-            <p className="text">Delete</p>
-          </span>
+          <button className="delete-button" onClick={props.handleImageDelete}>
+            Delete
+          </button>
         )}
         <Image src={imageData} size={ImageSize.m} />
       </div>

@@ -178,9 +178,12 @@ const AlbumPage = (props: {
                 !invalidAlbum
               ) && (
                 <div>
-                  <span className="back-button" onClick={handleClickBackButton}>
-                    <p className="text">Back</p>
-                  </span>
+                  <button
+                    className="material-symbols-outlined back-button"
+                    onClick={handleClickBackButton}
+                  >
+                    arrow_back
+                  </button>
                 </div>
               )
             }
@@ -194,7 +197,7 @@ const AlbumPage = (props: {
                   <h1 className="title">{galleryName}</h1>
                 )}
                 {props.hasAdminAccess && (
-                  <span
+                  <button
                     className="delete-button"
                     onClick={async () => {
                       let promptInput = prompt(
@@ -211,8 +214,8 @@ const AlbumPage = (props: {
                       alert("Album names did not match.");
                     }}
                   >
-                    <p className="text">Delete</p>
-                  </span>
+                    Delete
+                  </button>
                 )}
 
                 {images.map((photo, i) => (

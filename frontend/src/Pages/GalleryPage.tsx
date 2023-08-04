@@ -128,9 +128,6 @@ const GalleryPage = (): JSX.Element => {
         path="*"
         element={
           <div>
-            <span className="back-button" onClick={() => navigate(`/`)}>
-              <p className="text">Back</p>
-            </span>
             {isLoading ? (
               <h1>Loading ...</h1>
             ) : albumPreviews.length !== 0 ? (
@@ -141,6 +138,12 @@ const GalleryPage = (): JSX.Element => {
                 />
               ) : (
                 <div>
+                  <button
+                    className="material-symbols-outlined back-button"
+                    onClick={() => navigate(`/`)}
+                  >
+                    arrow_back
+                  </button>
                   <h1 className="title">{galleryName}</h1>
                   {albumPreviews.map((album, i) => (
                     <AlbumPreview key={i} {...album} />
